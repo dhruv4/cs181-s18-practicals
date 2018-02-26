@@ -1,1 +1,4 @@
-.tar.gz
+*.tar.gz
+test/*
+train/*
+*.xml
