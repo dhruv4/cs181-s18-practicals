@@ -232,7 +232,7 @@ def system_call_count_feats(tree):
 def main():
     train_dir = "train"
     test_dir = "test"
-    outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
+    outputfile = "sample_predictions.csv"  # feel free to change this or take it as an argument
     
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [first_last_system_call_feats, system_call_count_feats]

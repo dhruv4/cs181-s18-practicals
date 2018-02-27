@@ -12,6 +12,7 @@
 \usepackage{color}
 \usepackage{todonotes}
 \usepackage{listings}
+\usepackage{soul}
 
 \usepackage[mmddyyyy,hhmmss]{datetime}
 
@@ -27,18 +28,28 @@
 \begin{document}
 \begin{center}
 {\Large Practical 2: Classifying Malicious Software}\\
-Kaggle submission closes at 11:59pm on Wednesday, March 8\\
-Writeup due 5:00pm on Friday, March 10
+
+Camelot submission closes at 11:59pm on Thursday, March 8th, 2018.\\
+Writeup due 11:59 on Friday, March 9th, 2018\\
 \end{center}
 
-You will do this assignment in groups of three. You can seek partners via Piazza.  Course staff can also help you find partners.  Submit one PDF writeup per team via the Canvas site.
 
-In this practical, you will classify executable files collected from people's computers (over a period of several days) into any of 14 known malware classes, or determine that the executables are not malware.  You will train on 3086 executables of known provenance that were collected on a single day. Your predictions on 1900 out of 3724 executables collected on a subsequent day will appear on the public leaderboard, and your predictions on the remaining 1824 executables will appear in the private leaderboard. In making your predictions, you will primarily have at your disposal logs of the system calls (and arguments) made by the processes invoked by the executables when run.
+\noindent You will do this assignment in groups of three. You can seek partners via Piazza. Course staff can also help you find partners. 
+Please see \texttt{practical-logistics.pdf} for a description
+of competing on \href{https://portal.camelot.ai}{Camelot.ai}, what to submit to Canvas, and more. 
+Make sure to use the provided \LaTeX \hspace{1pt} template for your writeup.
+        
+
+In this practical, you will classify executable files collected from people's computers (over a period of several days) into any of 14 known malware classes, 
+or determine that the executables are not malware.  You will train on executables of known provenance that were collected on a single day. 
+Your predictions on some of the executables collected on a subsequent day will appear on the public leaderboard, 
+and your predictions on the remaining executables will appear in the private leaderboard. In making your predictions, 
+you will primarily have at your disposal logs of the system calls (and arguments) made by the processes invoked by the executables when run.
 
 Identifying malware can be tricky because there are often many variants of any particular class of malware that exhibit slightly different behavior. Malware can also behave differently depending on the environment in which it finds itself, or act with some randomness. Being able to classify malware into broader classes is useful, however, because it can both suggest ways of disinfecting infected systems, as well as allow us to easily identify new variants of particular classes that are being introduced. The malware classes under consideration in this practical are: \texttt{Agent}, \texttt{AutoRun}, \texttt{FraudLoad}, \texttt{FraudPack}, \texttt{Hupigon}, \texttt{Krap}, \texttt{Lipler}, \texttt{Magania}, \texttt{Poison}, \texttt{Swizzor}, \texttt{Tdss}, \texttt{VB}, \texttt{Virut}, and \texttt{Zbot}.
 
 \subsection*{Data Files}
-There are three files of interest, which can be downloaded from \href{https://inclass.kaggle.com/c/cs-181-classification-practical/data}{Kaggle}:
+There are three files of interest, which can be downloaded from the \href{https://github.com/harvard-ml-courses/cs181-s18-practicals}{practicals repository}:
 \begin{itemize}
 \item \verb|train.tar.gz| and \verb|test.tar.gz| -- These file contains information about the 3086 executables in the training set, and the 3724 executables in the test set, respectively. They are gzipped tarballs of directories, which contain an XML file for each datum.  The training files have the form
 \begin{center}
@@ -85,7 +96,11 @@ The following is an example \verb|system_call| element from an \verb|all_section
 \end{csv}
 The name of the system call, in this case \verb|load_image|, is given by the tag of the element, and its arguments appear as attributes. The above system call element does not have children, though some system call elements do.
 
-\item \verb|sample_predictions.csv| -- A sample submission file.  You will produce a similar file.  The format is comma-delimited, with the first column being the \verb|hex_string| and the second column being your class prediction, an integer between 0 and 14 (inclusive).
+\item \verb|sample_predictions.csv| -- A sample submission file.  
+      You will produce a similar file.  
+      The format is comma-delimited, with the first column being the \verb|hex_string| 
+      and the second column being your class prediction, an integer between 0 and 14 
+      (inclusive).  
 \begin{csv}
 Id,Prediction
 0aefbb082e0461675d05e3147473045acdf2894cb,2
@@ -98,6 +113,13 @@ a3b09caec6edcfeb2f3ef321b62a5100a6c2f23f9,2
 ...
 \end{csv}
 The class numbers correspond to the predicted classes, in alphabetical order; see table below.  Note that \verb|None| is a special class indicating that the executable is not malware.
+
+ \textbf{VERY IMPORTANT:} After making your predictions, you *must* run:
+\begin{verbatim}
+reorder_submission.py [pred_filename].csv [new_filename].csv
+\end{verbatim}
+and submit \texttt{[new\_filename].csv} when uploading to Camelot.ai. 
+This standardizes the order of the predictions.
 
 \end{itemize}
 
@@ -132,6 +154,13 @@ The evaluation metric for this practical is categorization accuracy. That is, yo
 \subsection*{Sample Code}
 Two Python files are available from the course website.  The file \verb|classification_starter.py| and \verb|util.py| are meant to help you get going.  You definitely don't have to use them, but they provide some potentially-useful tools in which you can fill in the gaps.  Specifically, it helps you write some functions that can generate features from the data.  The file has lots of comments, so hopefully you can figure out how it works. Thanks to Sam Wiseman for putting this together!
 
+\subsection*{Baselines}
+You will find two baselines on the leaderboard, the Bigrams baseline and the Most Frequent Class baseline. 
+Though we have not provided the code for these, they are simple approaches.
+Bigrams are features made from every pair of words found in a corpus.
+For example, \texttt{Classification is} and \texttt{is fun} are bigrams found in \texttt{Classification is fun}.
+The Most Frequent Class baseline just predicts the most frequent class found in the training set.
+
 \subsection*{Solution Ideas}  As in the previous practicals, you have a lot of flexibility in what you might do.  You could focus on feature engineering, i.e., coming up with fancy inputs for your method, or you could focus on fancy classification techniques that use the features.  Here are some ideas to get you started:
 \begin{itemize}
 
@@ -152,8 +181,3 @@ Two Python files are available from the course website.  The file \verb|classifi
 \end{itemize}
 
 \end{document}
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: t
-%%% End:
