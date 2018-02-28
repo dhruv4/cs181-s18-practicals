@@ -81,6 +81,9 @@ except ImportError:
 import numpy as np
 from scipy import sparse
 
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+
 import util
 
 
@@ -238,15 +241,26 @@ def system_call_count_feats(tree):
     return c
 
 
+def eval(pred, actual):
+
+    count = 0.0
+    for i in range(len(pred)):
+        if pred[i] == actual[i]:
+            count += 1
+
+    return count / len(actual)
+
+
 # The following function does the feature extraction, learning, and prediction
 def main():
     train_dir = "train"
     test_dir = "test"
-    outputfile = "mypredictions.csv"
     # feel free to change this or take it as an argument
+    outputfile = "sample_predictions.csv"
 
-    # TODO put the names of the feature functions
-    # you've defined above in this list
+    outputfilemlp = "mlp_predictions.csv"
+
+    # TODO put the names of the feature functions you've defined in this list
     ffs = [first_last_system_call_feats, system_call_count_feats]
 
     # extract features
@@ -256,12 +270,40 @@ def main():
     print "done extracting training features"
     print
 
+    # print X_train X_train is the set of tuples
+    # with features to values (id, feature_id): value_for_feature
+
+    # print global_feat_dict global_feat_dict
+    # relates the feature_id to the value_for_feature
+
+    # print t_train is a vector of the actual classes for each X_train id
+
+    X_train, X_valid, t_train, t_valid = train_test_split(
+        X_train, t_train, test_size=0.33)
+
+    # extract more features
+
     # TODO train here, and learn your classification parameters
     print "learning..."
     learned_W = np.random.random(
         (len(global_feat_dict), len(util.malware_classes)))
+    mlpclf = MLPClassifier()
+
+    mlpclf.fit(X_train.toarray(), t_train)
+    # write something here
+
     print "done learning"
     print
+
+    print "validation testing"
+    validmlp = mlpclf.predict(X_valid.toarray())
+
+    print "mlp prediction", validmlp
+    print "t actual", t_valid
+
+    print eval(validmlp, t_valid)
+
+    exit(0)
 
     # get rid of training data and load test data
     del X_train
@@ -273,14 +315,20 @@ def main():
     print "done extracting test features"
     print
 
-    # TODO make predictions on text data and write them out
+    # TODO make predictions on test data and write them out
     print "making predictions..."
     preds = np.argmax(X_test.dot(learned_W), axis=1)
+
+    print X_test.toarray()
+
+    predsmlp = mlpclf.predict(X_test.toarray())
+
     print "done making predictions"
     print
 
     print "writing predictions..."
     util.write_predictions(preds, test_ids, outputfile)
+    util.write_predictions(predsmlp, test_ids, outputfilemlp)
     print "done!"
 
 
