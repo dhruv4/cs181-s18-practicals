@@ -2,3 +2,4 @@
 test/*
 train/*
 *.xml
+.DS_Store

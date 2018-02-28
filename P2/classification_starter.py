@@ -261,7 +261,13 @@ def main():
     # print global_feat_dict global_feat_dict relates the feature_id to the value_for_feature
     # print t_train is a vector of the actual classes for each X_train id
 
-    X_train, X_valid, t_train, t_valid = train_test_split(X_train, t_train, test_size=0.33)
+    X_train, X_valid, t_train, t_valid = train_test_split(X_train, t_train, test_size=0.2)
+
+    # we're given prior frequencies. That could be helpful if we use a Bayesian model
+
+    # it seems like many of the malware xmls have "dump" keywords
+
+    # 
 
     # extract more features
     
