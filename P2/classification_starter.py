@@ -73,6 +73,7 @@
 # for an example.
 
 import os
+import time
 import pickle
 from collections import Counter
 try:
@@ -84,6 +85,9 @@ from scipy import sparse
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
+from sknn.mlp import Classifier
+from sknn.mlp import Layer
+from sknn.mlp import Convolution
 
 import util
 
@@ -94,8 +98,12 @@ import util
 #       which maps system call names to class integers
 
 GENERATING_SYSTEM_CALL_LIST = False
+MAX_SYSTEM_CALLS = 294035
 
 all_system_calls = set()
+
+system_call_codes = None
+codes_to_system_calls = None
 
 
 def add_all_system_calls(tree):
@@ -254,7 +262,46 @@ def first_last_system_call_feats(tree):
     return c
 
 
-MAX_SYSTEM_CALLS = 0
+def harshita_feats(tree):
+    """
+    arguments:
+      tree is an xml.etree.ElementTree object
+    returns:
+      a dictionary mapping 'first_call-x' to 1 if x was the first system call
+      made, and 'last_call-y' to 1 if y was the last system call made.
+      (in other words, it returns a dictionary indicating what the first and
+      last system calls made by an executable were.)
+    """
+    c = Counter()
+    sys_call_num = 0
+    sys_call_counts = system_call_codes.copy()
+    sys_call_counts = {k + "-count": 0 for k, _ in sys_call_counts.iteritems()}
+    in_all_section = False
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            # found a system call
+            call_name = el.tag
+
+            # update counts tag
+            sys_call_counts[call_name + "-count"] += 1
+
+            # create features for the system call that it is,
+            # and the calls that it is not
+#            c[str(sys_call_num) + call_name] = 1
+#            for not_call in system_call_codes.keys():
+#                if call_name == not_call:
+#                    continue
+#                c[str(sys_call_num) + not_call] = 0
+
+            sys_call_num += 1
+
+    dict.update(c, sys_call_counts)
+    return c
 
 
 def system_call_count_feats(tree):
@@ -265,7 +312,7 @@ def system_call_count_feats(tree):
       a dictionary mapping 'num_system_calls' to the number of system_calls
       made by an executable (summed over all processes)
     """
-    global MAX_SYSTEM_CALLS
+    # global MAX_SYSTEM_CALLS
     c = Counter()
     in_all_section = False
     for el in tree.iter():
@@ -276,7 +323,7 @@ def system_call_count_feats(tree):
             in_all_section = False
         elif in_all_section:
             c['num_system_calls'] += 1
-    MAX_SYSTEM_CALLS = max(c['num_system_calls'], MAX_SYSTEM_CALLS)
+    # MAX_SYSTEM_CALLS = max(c['num_system_calls'], MAX_SYSTEM_CALLS)
     return c
 
 
@@ -292,15 +339,23 @@ def eval(pred, actual):
 
 # The following function does the feature extraction, learning, and prediction
 def main():
+    global MAX_SYSTEM_CALLS
+    global system_call_codes
+    global codes_to_system_calls
+
+    system_call_codes = pickle.load(open("all-system-calls.pickle", "rb"))
+    codes_to_system_calls = pickle.load(
+        open("all-system-calls-classes.pickle", "rb"))
+
     train_dir = "train"
     test_dir = "test"
     # feel free to change this or take it as an argument
-    outputfile = "sample_predictions.csv"
-
-    outputfilemlp = "mlp_predictions.csv"
+    outputfile = "sample_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
+    outputfilemlp = "mlp_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
 
     # TODO put the names of the feature functions you've defined in this list
-    ffs = [first_last_system_call_feats, system_call_count_feats]
+    # ffs = [first_last_system_call_feats, system_call_count_feats]
+    ffs = [harshita_feats]
 
     # extract features
     print "extracting training features..."
@@ -321,15 +376,29 @@ def main():
         X_train, t_train, test_size=0.33)
 
     # extract more features
-
+    # print global_feat_dict
     # TODO train here, and learn your classification parameters
     print "learning..."
     learned_W = np.random.random(
         (len(global_feat_dict), len(util.malware_classes)))
     mlpclf = MLPClassifier()
+    # # nn = Classifier(
+    #     layers=[
+    #         Convolution('Rectifier', channels=32,
+    #                     kernel_shape=(len(global_feat_dict), 1),
+    #                     border_mode='full'),
+    #         Convolution('Rectifier', channels=32,
+    #                     kernel_shape=(len(global_feat_dict), 1),
+    #                     border_mode='valid'),
+    #         Layer('Rectifier', units=64),
+    #         Layer('Softmax')],
+    #     learning_rate=0.002,
+    #     valid_size=0.2,
+    #     n_stable=10,
+    #     verbose=True)
 
     mlpclf.fit(X_train.toarray(), t_train)
-    # write something here
+    # mlpclf.fit(X_train.toarray(), t_train)
 
     print "done learning"
     print
@@ -369,6 +438,8 @@ def main():
     util.write_predictions(preds, test_ids, outputfile)
     util.write_predictions(predsmlp, test_ids, outputfilemlp)
     print "done!"
+
+    print MAX_SYSTEM_CALLS
 
     if GENERATING_SYSTEM_CALL_LIST:
         pickle.dump(all_system_calls, open("all-system-calls.pickle", 'wb'))
