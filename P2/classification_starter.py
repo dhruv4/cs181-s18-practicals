@@ -75,6 +75,8 @@
 import os
 import time
 import pickle
+from BTrees.IIBTree import *
+from BTrees.OIBTree import *
 from collections import Counter
 try:
     import xml.etree.cElementTree as ET
@@ -82,12 +84,15 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from scipy import sparse
+from sklearn.preprocessing import StandardScaler
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sknn.mlp import Classifier
 from sknn.mlp import Layer
 from sknn.mlp import Convolution
+from sklearn.feature_extraction import FeatureHasher
+
 
 import util
 
@@ -99,6 +104,7 @@ import util
 
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
+mean_input_output = 15730878
 
 all_system_calls = set()
 
@@ -160,7 +166,7 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
             # if this is test data, which always has an "X" label
             assert clazz == "X"
             classes.append(-1)
-        rowfd = {}
+        rowfd = IIBTree()
         # parse file as an xml document
         tree = ET.parse(os.path.join(direc, datafile))
 
@@ -272,10 +278,18 @@ def harshita_feats(tree):
       (in other words, it returns a dictionary indicating what the first and
       last system calls made by an executable were.)
     """
-    c = Counter()
-    sys_call_num = 0
-    sys_call_counts = system_call_codes.copy()
-    sys_call_counts = {k + "-count": 0 for k, _ in sys_call_counts.iteritems()}
+    # ultimately what is returned
+    # c = Counter()
+
+    # using an int-int optimized tree to store binary features
+    # for presence of a system call on a certain line
+    # SYS_CALL_NUM * 1000 + SYS_CALL_ID : True or False
+
+    # dict will also contain the counts of specific system calls occuring
+    # in the format SYS_CALL_ID: count
+    call_order = IIBTree()
+    call_num = 1
+
     in_all_section = False
     for el in tree.iter():
         # ignore everything outside the "all_section" element
@@ -286,22 +300,34 @@ def harshita_feats(tree):
         elif in_all_section:
             # found a system call
             call_name = el.tag
+            call_code = system_call_codes[call_name]
 
             # update counts tag
-            sys_call_counts[call_name + "-count"] += 1
+            # sys_call_counts[call_name + "-count"] += 1
+            if call_code not in call_order:
+                call_order[call_code] = 0
+            call_order[call_code] += 1
+
+            call_order[call_num * 1000] = call_code
+            # for not_call in system_call_codes.keys():
+            #     if call_name == not_call:
+            #         continue
+            #     call_order[call_num * 1000 + system_call_codes[not_call]] = 0
+
 
             # create features for the system call that it is,
             # and the calls that it is not
-#            c[str(sys_call_num) + call_name] = 1
-#            for not_call in system_call_codes.keys():
-#                if call_name == not_call:
-#                    continue
-#                c[str(sys_call_num) + not_call] = 0
+            # call_order[call_num * 1000 + call_code] = 1
+            # for not_call in system_call_codes.keys():
+            #     if call_name == not_call:
+            #         continue
+            #     call_order[call_num * 1000 + system_call_codes[not_call]] = 0
 
-            sys_call_num += 1
+            call_num += 1
 
-    dict.update(c, sys_call_counts)
-    return c
+    # dict.update(c, sys_call_counts)
+    # dict.update(c, call_order)
+    return call_order
 
 
 def system_call_count_feats(tree):
@@ -342,6 +368,8 @@ def main():
     global MAX_SYSTEM_CALLS
     global system_call_codes
     global codes_to_system_calls
+    global h
+    h = FeatureHasher(n_features=107, input_type="string")
 
     system_call_codes = pickle.load(open("all-system-calls.pickle", "rb"))
     codes_to_system_calls = pickle.load(
@@ -372,8 +400,15 @@ def main():
 
     # print t_train is a vector of the actual classes for each X_train id
 
+    scalar = StandardScaler()
+
     X_train, X_valid, t_train, t_valid = train_test_split(
         X_train, t_train, test_size=0.33)
+
+    print "preprocessing data..."
+    # scalar.fit(X_train)
+    # X_train = scalar.transform(X_train)
+    # X_valid = scalar.transform(X_valid)
 
     # extract more features
     # print global_feat_dict
@@ -420,6 +455,7 @@ def main():
     print "extracting test features..."
     X_test, _, t_ignore, test_ids = extract_feats(
         ffs, test_dir, global_feat_dict=global_feat_dict)
+    # X_test = scalar.transform(X_test)
     print "done extracting test features"
     print
 
