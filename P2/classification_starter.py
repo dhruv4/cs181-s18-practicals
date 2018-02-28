@@ -78,6 +78,8 @@ import pickle
 from BTrees.IIBTree import *
 from BTrees.OIBTree import *
 from collections import Counter
+from random import sample
+from datetime import datetime
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -110,6 +112,10 @@ all_system_calls = set()
 
 system_call_codes = None
 codes_to_system_calls = None
+
+# code_code_random_mapping = None
+code_binary_digits_mapping = {}
+time_str = "%M:%S.%f"
 
 
 def add_all_system_calls(tree):
@@ -283,16 +289,24 @@ def harshita_feats(tree):
 
     # using an int-int optimized tree to store binary features
     # for presence of a system call on a certain line
-    # SYS_CALL_NUM * 1000 + SYS_CALL_ID : True or False
+    # use six features per line that hold a random hash of the system call
+    # CALL_LIN * 10 + feature_num[1 to 6] : True or False
 
     # dict will also contain the counts of specific system calls occuring
     # in the format SYS_CALL_ID: count
+
+    # dict will also contain -1 : duration of execution
     call_order = IIBTree()
     call_num = 1
+    total_duration = 0
 
     in_all_section = False
     for el in tree.iter():
         # ignore everything outside the "all_section" element
+        if el.tag == "process":
+            total_duration += (datetime.strptime(
+                el.attrib["terminationtime"], time_str) - datetime.strptime(
+                el.attrib["starttime"], time_str)).seconds
         if el.tag == "all_section" and not in_all_section:
             in_all_section = True
         elif el.tag == "all_section" and in_all_section:
@@ -308,7 +322,11 @@ def harshita_feats(tree):
                 call_order[call_code] = 0
             call_order[call_code] += 1
 
-            call_order[call_num * 1000] = call_code
+            # add 6 features per system call that indicate which class
+            # of system call it is
+            for fn, digit in enumerate(code_binary_digits_mapping[call_code]):
+                call_order[call_num * 10 + fn] = digit
+
             # for not_call in system_call_codes.keys():
             #     if call_name == not_call:
             #         continue
@@ -324,7 +342,7 @@ def harshita_feats(tree):
             #     call_order[call_num * 1000 + system_call_codes[not_call]] = 0
 
             call_num += 1
-
+    call_order[-1] = total_duration
     # dict.update(c, sys_call_counts)
     # dict.update(c, call_order)
     return call_order
@@ -369,11 +387,23 @@ def main():
     global system_call_codes
     global codes_to_system_calls
     global h
-    h = FeatureHasher(n_features=107, input_type="string")
+    global code_code_random_mapping
 
     system_call_codes = pickle.load(open("all-system-calls.pickle", "rb"))
     codes_to_system_calls = pickle.load(
         open("all-system-calls-classes.pickle", "rb"))
+
+    code_code_random_mapping = {k: v for k, v in zip(
+        sample(range(0, 107), 107), sample(range(0, 107), 107))}
+
+    for code in codes_to_system_calls.keys():
+        randomized_code = code_code_random_mapping[code]
+        result = []
+        for char in "{0:b}".format(randomized_code):
+            result.append(int(char))
+        code_binary_digits_mapping[code] = result
+
+    # h = FeatureHasher(n_features=107, input_type="string")
 
     train_dir = "train"
     test_dir = "test"
@@ -399,8 +429,6 @@ def main():
     # relates the feature_id to the value_for_feature
 
     # print t_train is a vector of the actual classes for each X_train id
-
-    scalar = StandardScaler()
 
     X_train, X_valid, t_train, t_valid = train_test_split(
         X_train, t_train, test_size=0.33)
