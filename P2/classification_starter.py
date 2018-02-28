@@ -90,11 +90,19 @@ from sklearn.preprocessing import StandardScaler
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
-from sknn.mlp import Classifier
-from sknn.mlp import Layer
-from sknn.mlp import Convolution
+# from sknn.mlp import Classifier
+# from sknn.mlp import Layer
+# from sknn.mlp import Convolution
+
 from sklearn.feature_extraction import FeatureHasher
 
+import theano
+
+import lasagne
+from lasagne import layers
+from lasagne.updates import nesterov_momentum
+
+from nolearn.lasagne import NeuralNet
 
 import util
 
@@ -162,12 +170,16 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
     ids = []
     for datafile in os.listdir(direc):
         # extract id and true class (if available) from filename
+
         id_str, clazz = datafile.split('.')[:2]
         ids.append(id_str)
         # add target class if this is training data
         try:
             classes.append(util.malware_classes.index(clazz))
         except ValueError:
+
+            print datafile, clazz
+
             # should only fail to find the label in our list of malware classes
             # if this is test data, which always has an "X" label
             assert clazz == "X"
@@ -380,7 +392,6 @@ def eval(pred, actual):
 
     return count / len(actual)
 
-
 # The following function does the feature extraction, learning, and prediction
 def main():
     global MAX_SYSTEM_CALLS
@@ -410,6 +421,7 @@ def main():
     # feel free to change this or take it as an argument
     outputfile = "sample_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
     outputfilemlp = "mlp_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
+    outputfilemlp = "net1_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
 
     # TODO put the names of the feature functions you've defined in this list
     # ffs = [first_last_system_call_feats, system_call_count_feats]
@@ -417,8 +429,7 @@ def main():
 
     # extract features
     print "extracting training features..."
-    X_train, global_feat_dict, t_train, train_ids = extract_feats(
-        ffs, train_dir)
+    X_train, global_feat_dict, t_train, train_ids = extract_feats(ffs, train_dir)
     print "done extracting training features"
     print
 
@@ -430,8 +441,7 @@ def main():
 
     # print t_train is a vector of the actual classes for each X_train id
 
-    X_train, X_valid, t_train, t_valid = train_test_split(
-        X_train, t_train, test_size=0.33)
+    X_train, X_valid, t_train, t_valid = train_test_split(X_train, t_train, test_size=0.33)
 
     print "preprocessing data..."
     # scalar.fit(X_train)
@@ -460,7 +470,54 @@ def main():
     #     n_stable=10,
     #     verbose=True)
 
+    net1 = NeuralNet(
+    layers=[('input', layers.InputLayer),
+            ('conv2d1', layers.Conv2DLayer),
+            ('maxpool1', layers.MaxPool2DLayer),
+            ('conv2d2', layers.Conv2DLayer),
+            ('maxpool2', layers.MaxPool2DLayer),
+            ('dropout1', layers.DropoutLayer),
+            ('dense', layers.DenseLayer),
+            ('dropout2', layers.DropoutLayer),
+            ('output', layers.DenseLayer),
+            ],
+    # input layer
+    input_shape=(None, 1, 28, 28),
+    # layer conv2d1
+    conv2d1_num_filters=32,
+    conv2d1_filter_size=(5, 5),
+    conv2d1_nonlinearity=lasagne.nonlinearities.rectify,
+    conv2d1_W=lasagne.init.GlorotUniform(),  
+    # layer maxpool1
+    maxpool1_pool_size=(2, 2),    
+    # layer conv2d2
+    conv2d2_num_filters=32,
+    conv2d2_filter_size=(5, 5),
+    conv2d2_nonlinearity=lasagne.nonlinearities.rectify,
+    # layer maxpool2
+    maxpool2_pool_size=(2, 2),
+    # dropout1
+    dropout1_p=0.5,    
+    # dense
+    dense_num_units=256,
+    dense_nonlinearity=lasagne.nonlinearities.rectify,    
+    # dropout2
+    dropout2_p=0.5,    
+    # output
+    output_nonlinearity=lasagne.nonlinearities.softmax,
+    output_num_units=10,
+    # optimization method params
+    update=nesterov_momentum,
+    update_learning_rate=0.01,
+    update_momentum=0.9,
+    max_epochs=10,
+    verbose=1,
+    )
+
     mlpclf.fit(X_train.toarray(), t_train)
+
+    net1.fit(X_train.toarray(), t_train)
+
     # mlpclf.fit(X_train.toarray(), t_train)
 
     print "done learning"
@@ -469,12 +526,16 @@ def main():
     print "validation testing"
     validmlp = mlpclf.predict(X_valid.toarray())
 
+    validnet1 = net1.predict(X_valid.toarray())
+
     print "mlp prediction", validmlp
     print "t actual", t_valid
 
     print eval(validmlp, t_valid)
 
-    # exit(0)
+    print eval(validnet1, t_valid)
+
+    exit(0)
 
     # get rid of training data and load test data
     del X_train
@@ -494,6 +555,7 @@ def main():
     print X_test.toarray()
 
     predsmlp = mlpclf.predict(X_test.toarray())
+    predsnet1 = net1.predict(X_test.toarray())
 
     print "done making predictions"
     print
@@ -501,6 +563,9 @@ def main():
     print "writing predictions..."
     util.write_predictions(preds, test_ids, outputfile)
     util.write_predictions(predsmlp, test_ids, outputfilemlp)
+
+    util.write_predictions(predsnet1, test_ids, outputfilenet1)
+
     print "done!"
 
     print MAX_SYSTEM_CALLS

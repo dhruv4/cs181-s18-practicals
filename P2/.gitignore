@@ -2,3 +2,5 @@
 test/*
 train/*
 *.xml
+Icon?
+.DS_Store
