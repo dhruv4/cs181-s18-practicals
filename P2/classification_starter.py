@@ -73,6 +73,7 @@
 # for an example.
 
 import os
+import pickle
 from collections import Counter
 try:
     import xml.etree.cElementTree as ET
@@ -85,6 +86,35 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
 import util
+
+# Two pickled files that we rely on:
+#   all-system-calls-classes.pickle,
+#       which maps class integers to system call names
+#   all-system-calls.pickle,
+#       which maps system call names to class integers
+
+GENERATING_SYSTEM_CALL_LIST = False
+
+all_system_calls = set()
+
+
+def add_all_system_calls(tree):
+    """
+    arguments:
+      tree is an xml.etree.ElementTree object
+    post_condition:
+      adds all system calls in this xml document
+      to the all_system_calls dict
+    """
+    in_all_section = False
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            all_system_calls.add(el.tag)
 
 
 def extract_feats(ffs, direc="train", global_feat_dict=None):
@@ -125,6 +155,10 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
         rowfd = {}
         # parse file as an xml document
         tree = ET.parse(os.path.join(direc, datafile))
+
+        if GENERATING_SYSTEM_CALL_LIST:
+            add_all_system_calls(tree)
+
         # accumulate features
         [rowfd.update(ff(tree)) for ff in ffs]
         fds.append(rowfd)
@@ -220,6 +254,9 @@ def first_last_system_call_feats(tree):
     return c
 
 
+MAX_SYSTEM_CALLS = 0
+
+
 def system_call_count_feats(tree):
     """
     arguments:
@@ -228,6 +265,7 @@ def system_call_count_feats(tree):
       a dictionary mapping 'num_system_calls' to the number of system_calls
       made by an executable (summed over all processes)
     """
+    global MAX_SYSTEM_CALLS
     c = Counter()
     in_all_section = False
     for el in tree.iter():
@@ -238,6 +276,7 @@ def system_call_count_feats(tree):
             in_all_section = False
         elif in_all_section:
             c['num_system_calls'] += 1
+    MAX_SYSTEM_CALLS = max(c['num_system_calls'], MAX_SYSTEM_CALLS)
     return c
 
 
@@ -303,7 +342,7 @@ def main():
 
     print eval(validmlp, t_valid)
 
-    exit(0)
+    # exit(0)
 
     # get rid of training data and load test data
     del X_train
@@ -330,6 +369,9 @@ def main():
     util.write_predictions(preds, test_ids, outputfile)
     util.write_predictions(predsmlp, test_ids, outputfilemlp)
     print "done!"
+
+    if GENERATING_SYSTEM_CALL_LIST:
+        pickle.dump(all_system_calls, open("all-system-calls.pickle", 'wb'))
 
 
 if __name__ == "__main__":
