@@ -75,6 +75,7 @@
 import os
 import time
 import pickle
+import json
 from BTrees.IIBTree import *
 from BTrees.OIBTree import *
 from collections import Counter
@@ -116,6 +117,14 @@ GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
 mean_input_output = 15730878
 
+PROPERTIES_PER_CLASS_MULT = 12
+CONV1_FILTER_SIZE = 25
+CONV1_STRIDE = 1
+
+CONV2_FILTER_SIZE = 25
+CONV2_STRIDE = 1
+
+
 all_system_calls = set()
 
 system_call_codes = None
@@ -124,6 +133,13 @@ codes_to_system_calls = None
 # code_code_random_mapping = None
 code_binary_digits_mapping = {}
 time_str = "%M:%S.%f"
+
+GENERATING_FEATURES = {
+    "test": True,
+    "train": False
+}
+
+MAX_SYSTEM_CALLS = 107
 
 
 def add_all_system_calls(tree):
@@ -168,6 +184,16 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
     fds = []  # list of feature dicts
     classes = []
     ids = []
+    if not GENERATING_FEATURES[direc]:
+        print "loading features"
+        X = sparse.load_npz(open("features-%s-X" % direc, "rb"))
+        feat_dict = json.load(open("features-%s-feat-dict.json" % direc, "rb"))
+        classes = json.load(open("features-%s-classes.json" % direc, "rb"))
+        ids = json.load(open("features-%s-ids.json" % direc, "rb"))
+        print "done loading features"
+
+        return X, feat_dict, np.array(classes), ids
+
     for datafile in os.listdir(direc):
         # extract id and true class (if available) from filename
 
@@ -191,11 +217,17 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
         if GENERATING_SYSTEM_CALL_LIST:
             add_all_system_calls(tree)
 
-        # accumulate features
         [rowfd.update(ff(tree)) for ff in ffs]
         fds.append(rowfd)
 
     X, feat_dict = make_design_mat(fds, global_feat_dict)
+
+    print "dumping features"
+    sparse.save_npz(open("features-%s-X" % direc, "wb"), X)
+    json.dump(feat_dict, open("features-%s-feat-dict.json" % direc, "wb"))
+    json.dump(classes, open("features-%s-classes.json" % direc, "wb"))
+    json.dump(ids, open("features-%s-ids.json" % direc, "wb"))
+    print "done dumping features"
     return X, feat_dict, np.array(classes), ids
 
 
@@ -296,8 +328,6 @@ def harshita_feats(tree):
       (in other words, it returns a dictionary indicating what the first and
       last system calls made by an executable were.)
     """
-    # ultimately what is returned
-    # c = Counter()
 
     # using an int-int optimized tree to store binary features
     # for presence of a system call on a certain line
@@ -305,12 +335,15 @@ def harshita_feats(tree):
     # CALL_LIN * 10 + feature_num[1 to 6] : True or False
 
     # dict will also contain the counts of specific system calls occuring
+    # and the percentage value of count/total_system_calls
     # in the format SYS_CALL_ID: count
+    # and -SYS_CALL_ID: count/total_system_calls
 
-    # dict will also contain -1 : duration of execution
-    call_order = IIBTree()
+    # dict will also contain -(MAX_SYSTEM_CALLS + 1): duration of execution
+    features = IIBTree()
     call_num = 1
     total_duration = 0
+    total_calls = 0.0
 
     in_all_section = False
     for el in tree.iter():
@@ -325,39 +358,30 @@ def harshita_feats(tree):
             in_all_section = False
         elif in_all_section:
             # found a system call
+            total_calls += 1
             call_name = el.tag
             call_code = system_call_codes[call_name]
 
             # update counts tag
-            # sys_call_counts[call_name + "-count"] += 1
-            if call_code not in call_order:
-                call_order[call_code] = 0
-            call_order[call_code] += 1
+            if call_code not in features:
+                features[call_code] = 0
+            features[call_code] += 1
 
             # add 6 features per system call that indicate which class
             # of system call it is
             for fn, digit in enumerate(code_binary_digits_mapping[call_code]):
-                call_order[call_num * 10 + fn] = digit
-
-            # for not_call in system_call_codes.keys():
-            #     if call_name == not_call:
-            #         continue
-            #     call_order[call_num * 1000 + system_call_codes[not_call]] = 0
-
-
-            # create features for the system call that it is,
-            # and the calls that it is not
-            # call_order[call_num * 1000 + call_code] = 1
-            # for not_call in system_call_codes.keys():
-            #     if call_name == not_call:
-            #         continue
-            #     call_order[call_num * 1000 + system_call_codes[not_call]] = 0
+                features[call_num * 10 + fn] = digit
 
             call_num += 1
-    call_order[-1] = total_duration
+
+    for call in system_call_codes.values():
+        if call in features:
+            features[(-1) * (call + 1)] = int(features[call] / total_calls)
+
+    features[(MAX_SYSTEM_CALLS + 1) * -1] = total_duration
     # dict.update(c, sys_call_counts)
-    # dict.update(c, call_order)
-    return call_order
+    # dict.update(c, features)
+    return features
 
 
 def system_call_count_feats(tree):
@@ -471,47 +495,53 @@ def main():
     #     verbose=True)
 
     net1 = NeuralNet(
-    layers=[('input', layers.InputLayer),
-            ('conv2d1', layers.Conv2DLayer),
-            ('maxpool1', layers.MaxPool2DLayer),
-            ('conv2d2', layers.Conv2DLayer),
-            ('maxpool2', layers.MaxPool2DLayer),
-            ('dropout1', layers.DropoutLayer),
-            ('dense', layers.DenseLayer),
-            ('dropout2', layers.DropoutLayer),
-            ('output', layers.DenseLayer),
-            ],
-    # input layer
-    input_shape=(None, 1, 28, 28),
-    # layer conv2d1
-    conv2d1_num_filters=32,
-    conv2d1_filter_size=(5, 5),
-    conv2d1_nonlinearity=lasagne.nonlinearities.rectify,
-    conv2d1_W=lasagne.init.GlorotUniform(),  
-    # layer maxpool1
-    maxpool1_pool_size=(2, 2),    
-    # layer conv2d2
-    conv2d2_num_filters=32,
-    conv2d2_filter_size=(5, 5),
-    conv2d2_nonlinearity=lasagne.nonlinearities.rectify,
-    # layer maxpool2
-    maxpool2_pool_size=(2, 2),
-    # dropout1
-    dropout1_p=0.5,    
-    # dense
-    dense_num_units=256,
-    dense_nonlinearity=lasagne.nonlinearities.rectify,    
-    # dropout2
-    dropout2_p=0.5,    
-    # output
-    output_nonlinearity=lasagne.nonlinearities.softmax,
-    output_num_units=10,
-    # optimization method params
-    update=nesterov_momentum,
-    update_learning_rate=0.01,
-    update_momentum=0.9,
-    max_epochs=10,
-    verbose=1,
+        layers=[('input', layers.InputLayer),
+                ('conv1d1', layers.Conv1DLayer),
+                # ('maxpool1', layers.MaxPool1DLayer),
+                ('conv1d2', layers.Conv1DLayer),
+                # ('maxpool2', layers.MaxPool2DLayer),
+                ('dropout1', layers.DropoutLayer),
+                ('dense', layers.DenseLayer),
+                ('dropout2', layers.DropoutLayer),
+                ('output', layers.DenseLayer),
+                ],
+        # input layer
+        input_shape=(None, None, None),
+        # layer conv2d1
+        conv1d1_num_filters=len(
+            util.malware_clases) * PROPERTIES_PER_CLASS_MULT,
+        conv1d1_filter_size=CONV1_FILTER_SIZE,
+        conv1d1_stride=CONV1_STRIDE,
+        conv1d1_pad="full",
+        conv1d1_untie_biases=True,
+        conv1d1_nonlinearity=lasagne.nonlinearities.softmax,
+        conv1d1_W=lasagne.init.GlorotUniform(),
+        # layer maxpool1
+        # maxpool1_pool_size=(2, 2),
+        # layer conv2d2
+        conv1d2_num_filters=len(
+            util.malware_clases) * PROPERTIES_PER_CLASS_MULT,
+        conv1d2_filter_size=CONV2_FILTER_SIZE,
+        conv1d2_stride=CONV2_STRIDE,
+        conv1d2_nonlinearity=lasagne.nonlinearities.softmax,
+        # layer maxpool2
+        # maxpool2_pool_size=(2, 2),
+        # dropout1
+        dropout1_p=0.5,
+        # dense
+        dense_num_units=256,
+        dense_nonlinearity=lasagne.nonlinearities.softmax,
+        # dropout2
+        dropout2_p=0.5,
+        # output
+        output_nonlinearity=lasagne.nonlinearities.softmax,
+        output_num_units=len(util.malware_classes),
+        # optimization method params
+        update=nesterov_momentum,
+        update_learning_rate=0.01,
+        update_momentum=0.9,
+        max_epochs=10,
+        verbose=1,
     )
 
     mlpclf.fit(X_train.toarray(), t_train)
