@@ -509,7 +509,7 @@ def main():
         input_shape=(None, None, None),
         # layer conv2d1
         conv1d1_num_filters=len(
-            util.malware_clases) * PROPERTIES_PER_CLASS_MULT,
+            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
         conv1d1_filter_size=CONV1_FILTER_SIZE,
         conv1d1_stride=CONV1_STRIDE,
         conv1d1_pad="full",
@@ -520,7 +520,7 @@ def main():
         # maxpool1_pool_size=(2, 2),
         # layer conv2d2
         conv1d2_num_filters=len(
-            util.malware_clases) * PROPERTIES_PER_CLASS_MULT,
+            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
         conv1d2_filter_size=CONV2_FILTER_SIZE,
         conv1d2_stride=CONV2_STRIDE,
         conv1d2_nonlinearity=lasagne.nonlinearities.softmax,
