@@ -121,7 +121,7 @@ PROPERTIES_PER_CLASS_MULT = 12
 CONV1_FILTER_SIZE = 25
 CONV1_STRIDE = 1
 
-CONV2_FILTER_SIZE = 25
+CONV2_FILTER_SIZE = CONV1_FILTER_SIZE * 2
 CONV2_STRIDE = 1
 
 
@@ -138,6 +138,8 @@ GENERATING_FEATURES = {
     "test": True,
     "train": False
 }
+
+GENERATING_CODE_BINARY_MAPPING = True
 
 MAX_SYSTEM_CALLS = 107
 
@@ -222,12 +224,12 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
 
     X, feat_dict = make_design_mat(fds, global_feat_dict)
 
-    print "dumping features"
-    sparse.save_npz(open("features-%s-X" % direc, "wb"), X)
-    json.dump(feat_dict, open("features-%s-feat-dict.json" % direc, "wb"))
-    json.dump(classes, open("features-%s-classes.json" % direc, "wb"))
-    json.dump(ids, open("features-%s-ids.json" % direc, "wb"))
-    print "done dumping features"
+    # print "dumping features"
+    # sparse.save_npz(open("features-%s-X" % direc, "wb"), X)
+    # json.dump(feat_dict, open("features-%s-feat-dict.json" % direc, "wb"))
+    # json.dump(classes, open("features-%s-classes.json" % direc, "wb"))
+    # json.dump(ids, open("features-%s-ids.json" % direc, "wb"))
+    # print "done dumping features"
     return X, feat_dict, np.array(classes), ids
 
 
@@ -344,6 +346,7 @@ def harshita_feats(tree):
     call_num = 1
     total_duration = 0
     total_calls = 0.0
+    global code_binary_digits_mapping
 
     in_all_section = False
     for el in tree.iter():
@@ -416,6 +419,7 @@ def eval(pred, actual):
 
     return count / len(actual)
 
+
 # The following function does the feature extraction, learning, and prediction
 def main():
     global MAX_SYSTEM_CALLS
@@ -423,29 +427,39 @@ def main():
     global codes_to_system_calls
     global h
     global code_code_random_mapping
+    global code_binary_digits_mapping
 
     system_call_codes = pickle.load(open("all-system-calls.pickle", "rb"))
     codes_to_system_calls = pickle.load(
         open("all-system-calls-classes.pickle", "rb"))
 
-    code_code_random_mapping = {k: v for k, v in zip(
-        sample(range(0, 107), 107), sample(range(0, 107), 107))}
+    if GENERATING_CODE_BINARY_MAPPING:
+        code_binary_digits_mapping = {}
+        code_code_random_mapping = {k: v for k, v in zip(
+            sample(range(0, MAX_SYSTEM_CALLS), MAX_SYSTEM_CALLS),
+            sample(range(0, 2 ** (MAX_SYSTEM_CALLS - 1).bit_length()),
+                   MAX_SYSTEM_CALLS))}
 
-    for code in codes_to_system_calls.keys():
-        randomized_code = code_code_random_mapping[code]
-        result = []
-        for char in "{0:b}".format(randomized_code):
-            result.append(int(char))
-        code_binary_digits_mapping[code] = result
-
-    # h = FeatureHasher(n_features=107, input_type="string")
+        for code in range(0, MAX_SYSTEM_CALLS):
+            randomized_code = code_code_random_mapping[code]
+            result = []
+            for char in format(randomized_code,
+                               "0" + str(
+                                   (MAX_SYSTEM_CALLS - 1).bit_length()) + "b"):
+                result.append(int(char))
+            code_binary_digits_mapping[code] = result
+        json.dump(code_binary_digits_mapping,
+                  open("code-binary-ft-map.json", "wb"))
+    else:
+        code_binary_digits_mapping = json.load(
+            open("code-binary-ft-map.json", "rb"))
 
     train_dir = "train"
     test_dir = "test"
-    # feel free to change this or take it as an argument
+
     outputfile = "sample_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
     outputfilemlp = "mlp_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
-    outputfilemlp = "net1_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
+    # outputfilemlp = "net1_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
 
     # TODO put the names of the feature functions you've defined in this list
     # ffs = [first_last_system_call_feats, system_call_count_feats]
@@ -478,7 +492,7 @@ def main():
     print "learning..."
     learned_W = np.random.random(
         (len(global_feat_dict), len(util.malware_classes)))
-    mlpclf = MLPClassifier()
+    net1 = MLPClassifier(verbose=True)
     # # nn = Classifier(
     #     layers=[
     #         Convolution('Rectifier', channels=32,
@@ -494,59 +508,53 @@ def main():
     #     n_stable=10,
     #     verbose=True)
 
-    net1 = NeuralNet(
-        layers=[('input', layers.InputLayer),
-                ('conv1d1', layers.Conv1DLayer),
-                # ('maxpool1', layers.MaxPool1DLayer),
-                ('conv1d2', layers.Conv1DLayer),
-                # ('maxpool2', layers.MaxPool2DLayer),
-                ('dropout1', layers.DropoutLayer),
-                ('dense', layers.DenseLayer),
-                ('dropout2', layers.DropoutLayer),
-                ('output', layers.DenseLayer),
-                ],
-        # input layer
-        input_shape=(None, None, None),
-        # layer conv2d1
-        conv1d1_num_filters=len(
-            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-        conv1d1_filter_size=CONV1_FILTER_SIZE,
-        conv1d1_stride=CONV1_STRIDE,
-        conv1d1_pad="full",
-        conv1d1_untie_biases=True,
-        conv1d1_nonlinearity=lasagne.nonlinearities.softmax,
-        conv1d1_W=lasagne.init.GlorotUniform(),
-        # layer maxpool1
-        # maxpool1_pool_size=(2, 2),
-        # layer conv2d2
-        conv1d2_num_filters=len(
-            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-        conv1d2_filter_size=CONV2_FILTER_SIZE,
-        conv1d2_stride=CONV2_STRIDE,
-        conv1d2_nonlinearity=lasagne.nonlinearities.softmax,
-        # layer maxpool2
-        # maxpool2_pool_size=(2, 2),
-        # dropout1
-        dropout1_p=0.5,
-        # dense
-        dense_num_units=256,
-        dense_nonlinearity=lasagne.nonlinearities.softmax,
-        # dropout2
-        dropout2_p=0.5,
-        # output
-        output_nonlinearity=lasagne.nonlinearities.softmax,
-        output_num_units=len(util.malware_classes),
-        # optimization method params
-        update=nesterov_momentum,
-        update_learning_rate=0.01,
-        update_momentum=0.9,
-        max_epochs=10,
-        verbose=1,
-    )
+    print X_train.shape
+    # net1 = NeuralNet(
+    #     layers=[(layers.InputLayer, {
+    #             "shape": (None, X_train.shape[0], X_train.shape[1])}),
+    #             (layers.Conv1DLayer, {
+    #                 "num_filters": len(
+    #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+    #                 "filter_size": CONV1_FILTER_SIZE,
+    #                 "stride": CONV1_STRIDE,
+    #                 "untie_biases": True,
+    #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
+    #                 "W": lasagne.init.GlorotUniform()
+    #             }),
+    #             # ('maxpool1', layers.MaxPool1DLayer),
+    #             (layers.Conv1DLayer, {
+    #                 "num_filters": len(
+    #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+    #                 "filter_size": CONV2_FILTER_SIZE,
+    #                 "stride": CONV2_STRIDE,
+    #                 "pad": "full",
+    #                 "untie_biases": True,
+    #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
+    #                 "W": lasagne.init.GlorotUniform()
+    #             }),
+    #             # ('maxpool2', layers.MaxPool2DLayer),
+    #             (layers.DropoutLayer, {"p": 0.5}),
+    #             (layers.DenseLayer, {
+    #                 "num_units": 256,
+    #                 "nonlinearity": lasagne.nonlinearities.sigmoid}),
+    #             (layers.DropoutLayer, {"p": 0.5}),
+    #             (layers.DenseLayer, {
+    #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
+    #                 "num_units": len(util.malware_classes)}),
+    #             ],
+    #     # optimization method params
+    #     update=nesterov_momentum,
+    #     update_learning_rate=0.01,
+    #     update_momentum=0.9,
+    #     max_epochs=10,
+    #     verbose=1,
+    # )
 
-    mlpclf.fit(X_train.toarray(), t_train)
+    # mlpclf.fit(X_train, t_train)
 
-    net1.fit(X_train.toarray(), t_train)
+    tt = X_train.toarray()
+    net1.fit(tt, t_train)
+    # net1.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
 
     # mlpclf.fit(X_train.toarray(), t_train)
 
@@ -554,7 +562,7 @@ def main():
     print
 
     print "validation testing"
-    validmlp = mlpclf.predict(X_valid.toarray())
+    # validmlp = mlpclf.predict(X_valid.toarray())
 
     validnet1 = net1.predict(X_valid.toarray())
 
@@ -565,7 +573,7 @@ def main():
 
     print eval(validnet1, t_valid)
 
-    exit(0)
+    # exit(0)
 
     # get rid of training data and load test data
     del X_train
