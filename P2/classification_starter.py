@@ -87,23 +87,11 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from scipy import sparse
-from sklearn.preprocessing import StandardScaler
 
-from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-# from sknn.mlp import Classifier
-# from sknn.mlp import Layer
-# from sknn.mlp import Convolution
 
-from sklearn.feature_extraction import FeatureHasher
-
-import theano
-
-import lasagne
-from lasagne import layers
-from lasagne.updates import nesterov_momentum
-
-from nolearn.lasagne import NeuralNet
+from sklearn.externals import joblib
 
 import util
 
@@ -115,7 +103,6 @@ import util
 
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
-mean_input_output = 15730878
 
 PROPERTIES_PER_CLASS_MULT = 12
 CONV1_FILTER_SIZE = 25
@@ -139,9 +126,19 @@ GENERATING_FEATURES = {
     "train": False
 }
 
-GENERATING_CODE_BINARY_MAPPING = True
+GENERATING_CODE_BINARY_MAPPING = False
 
-MAX_SYSTEM_CALLS = 107
+TYPES_SYSTEM_CALLS = 107
+
+RETRAINING_MODEL = False
+
+BINARY_REPR = True
+
+# feature_set_string = "107"
+feature_set_string = "bin"
+
+RFR_MAX_FEATURES = 0.95
+RFR_TREES = 400
 
 
 def add_all_system_calls(tree):
@@ -188,10 +185,19 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
     ids = []
     if not GENERATING_FEATURES[direc]:
         print "loading features"
-        X = sparse.load_npz(open("features-%s-X" % direc, "rb"))
-        feat_dict = json.load(open("features-%s-feat-dict.json" % direc, "rb"))
-        classes = json.load(open("features-%s-classes.json" % direc, "rb"))
-        ids = json.load(open("features-%s-ids.json" % direc, "rb"))
+        X = sparse.load_npz(
+            open("features-%s-%s-X" % (direc, feature_set_string), "rb"))
+        feat_dict = json.load(
+            open("features-%s-%s-feat-dict.json" % (direc, feature_set_string),
+                 "rb"))
+        classes = json.load(
+            open("features-%s-%s-classes.json" % (direc, feature_set_string),
+                 "rb"))
+        ids = json.load(
+            open("features-%s-%s-ids.json" % (direc, feature_set_string),
+                 "rb"))
+        print len(feat_dict)
+        print 26234 in feat_dict
         print "done loading features"
 
         return X, feat_dict, np.array(classes), ids
@@ -206,7 +212,7 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
             classes.append(util.malware_classes.index(clazz))
         except ValueError:
 
-            print datafile, clazz
+            # print datafile, clazz
 
             # should only fail to find the label in our list of malware classes
             # if this is test data, which always has an "X" label
@@ -224,19 +230,28 @@ def extract_feats(ffs, direc="train", global_feat_dict=None):
 
     X, feat_dict = make_design_mat(fds, global_feat_dict)
 
-    # print "dumping features"
-    # sparse.save_npz(open("features-%s-X" % direc, "wb"), X)
-    # json.dump(feat_dict, open("features-%s-feat-dict.json" % direc, "wb"))
-    # json.dump(classes, open("features-%s-classes.json" % direc, "wb"))
-    # json.dump(ids, open("features-%s-ids.json" % direc, "wb"))
-    # print "done dumping features"
+    print "dumping features"
+    sparse.save_npz(
+        open("features-%s-%s-X" % (direc, feature_set_string), "wb"), X)
+    json.dump(
+        feat_dict,
+        open("features-%s-%s-feat-dict.json" % (direc, feature_set_string),
+             "wb"))
+    json.dump(
+        classes,
+        open("features-%s-%s-classes.json" % (direc, feature_set_string),
+             "wb"))
+    json.dump(
+        ids,
+        open("features-%s-%s-ids.json" % (direc, feature_set_string), "wb"))
+    print "done dumping features"
     return X, feat_dict, np.array(classes), ids
 
 
 def make_design_mat(fds, global_feat_dict=None):
     """
     arguments:
-      fds is a list of feature dicts (one for each row).
+      fds is a list of feature dicts (one for each datafile).
       global_feat_dict is a dict mapping feature_names to column-numbers; it
       should only be provided when extracting features from test data, so that
       the columns of the test matrix align correctly.
@@ -245,12 +260,31 @@ def make_design_mat(fds, global_feat_dict=None):
         a sparse NxD design matrix, where N == len(fds) and D is the number of
         the union of features defined in any of the fds
     """
+    # generate dict of all possible features
     if global_feat_dict is None:
+        train = True
         all_feats = set()
         [all_feats.update(fd.keys()) for fd in fds]
+        all_feats.update(system_call_codes.values())
+        [all_feats.add((call + 1) * (-1))
+         for call in system_call_codes.values()]
+        if BINARY_REPR:
+            all_possible_syscall_feats = [
+                line * 10 + b
+                for line in range(MAX_SYSTEM_CALLS + 1)
+                for b in range(((TYPES_SYSTEM_CALLS - 1).bit_length()))
+            ]
+        else:
+            all_possible_syscall_feats = [
+                line * 1000 + call_code
+                for line in range(MAX_SYSTEM_CALLS + 1)
+                for call_code in system_call_codes.values()
+            ]
+        all_feats.update(all_possible_syscall_feats)
         feat_dict = dict(
             [(feat, i) for i, feat in enumerate(sorted(all_feats))])
     else:
+        train = False
         feat_dict = global_feat_dict
 
     cols = []
@@ -262,10 +296,15 @@ def make_design_mat(fds, global_feat_dict=None):
         for feat, val in fds[i].iteritems():
             try:
                 # update temp_cols iff update temp_data
-                temp_cols.append(feat_dict[feat])
+                temp_cols.append(
+                    feat_dict[
+                        str(feat) if not GENERATING_FEATURES["train"] else feat
+                    ])
                 temp_data.append(val)
             except KeyError as ex:
                 if global_feat_dict is not None:
+                    print "new feature in test data this shouldnt happen lol"
+                    print feat
                     pass  # new feature in test data; nbd
                 else:
                     raise ex
@@ -321,16 +360,6 @@ def first_last_system_call_feats(tree):
 
 
 def harshita_feats(tree):
-    """
-    arguments:
-      tree is an xml.etree.ElementTree object
-    returns:
-      a dictionary mapping 'first_call-x' to 1 if x was the first system call
-      made, and 'last_call-y' to 1 if y was the last system call made.
-      (in other words, it returns a dictionary indicating what the first and
-      last system calls made by an executable were.)
-    """
-
     # using an int-int optimized tree to store binary features
     # for presence of a system call on a certain line
     # use six features per line that hold a random hash of the system call
@@ -343,7 +372,7 @@ def harshita_feats(tree):
 
     # dict will also contain -(MAX_SYSTEM_CALLS + 1): duration of execution
     features = IIBTree()
-    call_num = 1
+    num_calls = 1
     total_duration = 0
     total_calls = 0.0
     global code_binary_digits_mapping
@@ -370,20 +399,24 @@ def harshita_feats(tree):
                 features[call_code] = 0
             features[call_code] += 1
 
-            # add 6 features per system call that indicate which class
-            # of system call it is
-            for fn, digit in enumerate(code_binary_digits_mapping[call_code]):
-                features[call_num * 10 + fn] = digit
+            if not BINARY_REPR:
+                features[num_calls * 1000 + call_code] = 1
+            else:
+                for fn, d in enumerate(code_binary_digits_mapping[str(call_code)]):
+                        if d:
+                            features[num_calls * 10 + fn] = d
 
-            call_num += 1
+            num_calls += 1
 
     for call in system_call_codes.values():
         if call in features:
-            features[(-1) * (call + 1)] = int(features[call] / total_calls)
+                features[(-1) * (call + 1)] = int(features[call] / total_calls)
 
     features[(MAX_SYSTEM_CALLS + 1) * -1] = total_duration
     # dict.update(c, sys_call_counts)
     # dict.update(c, features)
+    # for item in features.items():
+    #     print item
     return features
 
 
@@ -436,16 +469,17 @@ def main():
     if GENERATING_CODE_BINARY_MAPPING:
         code_binary_digits_mapping = {}
         code_code_random_mapping = {k: v for k, v in zip(
-            sample(range(0, MAX_SYSTEM_CALLS), MAX_SYSTEM_CALLS),
-            sample(range(0, 2 ** (MAX_SYSTEM_CALLS - 1).bit_length()),
-                   MAX_SYSTEM_CALLS))}
+            sample(range(0, TYPES_SYSTEM_CALLS), TYPES_SYSTEM_CALLS),
+            sample(range(0, 2 ** (TYPES_SYSTEM_CALLS - 1).bit_length()),
+                   TYPES_SYSTEM_CALLS))}
 
-        for code in range(0, MAX_SYSTEM_CALLS):
+        for code in range(0, TYPES_SYSTEM_CALLS):
             randomized_code = code_code_random_mapping[code]
             result = []
             for char in format(randomized_code,
                                "0" + str(
-                                   (MAX_SYSTEM_CALLS - 1).bit_length()) + "b"):
+                                   (TYPES_SYSTEM_CALLS - 1).bit_length()) +
+                               "b"):
                 result.append(int(char))
             code_binary_digits_mapping[code] = result
         json.dump(code_binary_digits_mapping,
@@ -457,152 +491,67 @@ def main():
     train_dir = "train"
     test_dir = "test"
 
-    outputfile = "sample_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
-    outputfilemlp = "mlp_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
-    # outputfilemlp = "net1_predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S")
+    outputfilerfr = "rfr_predictions%s.csv" % time.strftime(
+        "%Y%m%d-%H%M%S")
 
-    # TODO put the names of the feature functions you've defined in this list
-    # ffs = [first_last_system_call_feats, system_call_count_feats]
     ffs = [harshita_feats]
 
-    # extract features
     print "extracting training features..."
-    X_train, global_feat_dict, t_train, train_ids = extract_feats(ffs, train_dir)
+    X_train, global_feat_dict, t_train, train_ids = extract_feats(
+        ffs, train_dir)
     print "done extracting training features"
     print
+    X_train, X_valid, t_train, t_valid = train_test_split(
+        X_train, t_train, test_size=0.33)
 
-    # print X_train X_train is the set of tuples
-    # with features to values (id, feature_id): value_for_feature
-
-    # print global_feat_dict global_feat_dict
-    # relates the feature_id to the value_for_feature
-
-    # print t_train is a vector of the actual classes for each X_train id
-
-    X_train, X_valid, t_train, t_valid = train_test_split(X_train, t_train, test_size=0.33)
-
-    print "preprocessing data..."
-    # scalar.fit(X_train)
-    # X_train = scalar.transform(X_train)
-    # X_valid = scalar.transform(X_valid)
-
-    # extract more features
-    # print global_feat_dict
-    # TODO train here, and learn your classification parameters
     print "learning..."
-    learned_W = np.random.random(
-        (len(global_feat_dict), len(util.malware_classes)))
-    net1 = MLPClassifier(verbose=True)
-    # # nn = Classifier(
-    #     layers=[
-    #         Convolution('Rectifier', channels=32,
-    #                     kernel_shape=(len(global_feat_dict), 1),
-    #                     border_mode='full'),
-    #         Convolution('Rectifier', channels=32,
-    #                     kernel_shape=(len(global_feat_dict), 1),
-    #                     border_mode='valid'),
-    #         Layer('Rectifier', units=64),
-    #         Layer('Softmax')],
-    #     learning_rate=0.002,
-    #     valid_size=0.2,
-    #     n_stable=10,
-    #     verbose=True)
+    rfrclf = RandomForestClassifier(
+        verbose=5,
+        n_jobs=-1,
+        max_features=RFR_MAX_FEATURES,
+        n_estimators=RFR_TREES,
+        oob_score=True
+    )
 
-    print X_train.shape
-    # net1 = NeuralNet(
-    #     layers=[(layers.InputLayer, {
-    #             "shape": (None, X_train.shape[0], X_train.shape[1])}),
-    #             (layers.Conv1DLayer, {
-    #                 "num_filters": len(
-    #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-    #                 "filter_size": CONV1_FILTER_SIZE,
-    #                 "stride": CONV1_STRIDE,
-    #                 "untie_biases": True,
-    #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
-    #                 "W": lasagne.init.GlorotUniform()
-    #             }),
-    #             # ('maxpool1', layers.MaxPool1DLayer),
-    #             (layers.Conv1DLayer, {
-    #                 "num_filters": len(
-    #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-    #                 "filter_size": CONV2_FILTER_SIZE,
-    #                 "stride": CONV2_STRIDE,
-    #                 "pad": "full",
-    #                 "untie_biases": True,
-    #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
-    #                 "W": lasagne.init.GlorotUniform()
-    #             }),
-    #             # ('maxpool2', layers.MaxPool2DLayer),
-    #             (layers.DropoutLayer, {"p": 0.5}),
-    #             (layers.DenseLayer, {
-    #                 "num_units": 256,
-    #                 "nonlinearity": lasagne.nonlinearities.sigmoid}),
-    #             (layers.DropoutLayer, {"p": 0.5}),
-    #             (layers.DenseLayer, {
-    #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
-    #                 "num_units": len(util.malware_classes)}),
-    #             ],
-    #     # optimization method params
-    #     update=nesterov_momentum,
-    #     update_learning_rate=0.01,
-    #     update_momentum=0.9,
-    #     max_epochs=10,
-    #     verbose=1,
-    # )
+    if RETRAINING_MODEL:
+        rfrclf.fit(X_train, t_train)
+        joblib.dump(rfrclf, "classifier-model.pickle")
 
-    # mlpclf.fit(X_train, t_train)
+        print "done learning"
+        print
 
-    tt = X_train.toarray()
-    net1.fit(tt, t_train)
-    # net1.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
+        print "validation testing"
 
-    # mlpclf.fit(X_train.toarray(), t_train)
+        validrfr = rfrclf.predict(X_valid.toarray())
+        print "rfr prediction", validrfr
+        print "t actual", t_valid
+        print eval(validrfr, t_valid)
 
-    print "done learning"
-    print
-
-    print "validation testing"
-    # validmlp = mlpclf.predict(X_valid.toarray())
-
-    validnet1 = net1.predict(X_valid.toarray())
-
-    print "mlp prediction", validmlp
-    print "t actual", t_valid
-
-    print eval(validmlp, t_valid)
-
-    print eval(validnet1, t_valid)
-
-    # exit(0)
+    else:
+        rfrclf = joblib.load("classifier-model.pickle")
+        print "loaded trained model, not validating"
 
     # get rid of training data and load test data
     del X_train
     del t_train
     del train_ids
+
     print "extracting test features..."
     X_test, _, t_ignore, test_ids = extract_feats(
         ffs, test_dir, global_feat_dict=global_feat_dict)
-    # X_test = scalar.transform(X_test)
     print "done extracting test features"
     print
 
-    # TODO make predictions on test data and write them out
     print "making predictions..."
-    preds = np.argmax(X_test.dot(learned_W), axis=1)
 
-    print X_test.toarray()
-
-    predsmlp = mlpclf.predict(X_test.toarray())
-    predsnet1 = net1.predict(X_test.toarray())
+    predsrfr = rfrclf.predict(X_test)
+    print predsrfr
 
     print "done making predictions"
     print
 
     print "writing predictions..."
-    util.write_predictions(preds, test_ids, outputfile)
-    util.write_predictions(predsmlp, test_ids, outputfilemlp)
-
-    util.write_predictions(predsnet1, test_ids, outputfilenet1)
+    util.write_predictions(predsrfr, test_ids, outputfilerfr)
 
     print "done!"
 
