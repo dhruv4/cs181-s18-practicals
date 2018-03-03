@@ -262,7 +262,6 @@ def make_design_mat(fds, global_feat_dict=None):
     """
     # generate dict of all possible features
     if global_feat_dict is None:
-        train = True
         all_feats = set()
         [all_feats.update(fd.keys()) for fd in fds]
         all_feats.update(system_call_codes.values())
@@ -284,7 +283,6 @@ def make_design_mat(fds, global_feat_dict=None):
         feat_dict = dict(
             [(feat, i) for i, feat in enumerate(sorted(all_feats))])
     else:
-        train = False
         feat_dict = global_feat_dict
 
     cols = []
@@ -321,42 +319,6 @@ def make_design_mat(fds, global_feat_dict=None):
                           (np.array(rows), np.array(cols))),
                           shape=(len(fds), len(feat_dict)))
     return X, feat_dict
-
-
-# Here are two example feature-functions.
-# They each take an xml.etree.ElementTree object,
-# (i.e., the result of parsing an xml file) and returns a dictionary mapping
-# feature-names to numeric values.
-# TODO: modify these functions, and/or add new ones.
-def first_last_system_call_feats(tree):
-    """
-    arguments:
-      tree is an xml.etree.ElementTree object
-    returns:
-      a dictionary mapping 'first_call-x' to 1 if x was the first system call
-      made, and 'last_call-y' to 1 if y was the last system call made.
-      (in other words, it returns a dictionary indicating what the first and
-      last system calls made by an executable were.)
-    """
-    c = Counter()
-    in_all_section = False
-    first = True  # is this the first system call
-    last_call = None  # keep track of last call we've seen
-    for el in tree.iter():
-        # ignore everything outside the "all_section" element
-        if el.tag == "all_section" and not in_all_section:
-            in_all_section = True
-        elif el.tag == "all_section" and in_all_section:
-            in_all_section = False
-        elif in_all_section:
-            if first:
-                c["first_call-" + el.tag] = 1
-                first = False
-            last_call = el.tag  # update last call seen
-
-    # finally, mark last call seen
-    c["last_call-" + last_call] = 1
-    return c
 
 
 def harshita_feats(tree):
@@ -418,29 +380,6 @@ def harshita_feats(tree):
     # for item in features.items():
     #     print item
     return features
-
-
-def system_call_count_feats(tree):
-    """
-    arguments:
-      tree is an xml.etree.ElementTree object
-    returns:
-      a dictionary mapping 'num_system_calls' to the number of system_calls
-      made by an executable (summed over all processes)
-    """
-    # global MAX_SYSTEM_CALLS
-    c = Counter()
-    in_all_section = False
-    for el in tree.iter():
-        # ignore everything outside the "all_section" element
-        if el.tag == "all_section" and not in_all_section:
-            in_all_section = True
-        elif el.tag == "all_section" and in_all_section:
-            in_all_section = False
-        elif in_all_section:
-            c['num_system_calls'] += 1
-    # MAX_SYSTEM_CALLS = max(c['num_system_calls'], MAX_SYSTEM_CALLS)
-    return c
 
 
 def eval(pred, actual):
