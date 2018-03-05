@@ -521,7 +521,7 @@ def main():
         print "loaded trained model"
 
     print "validation testing"
-    del X_valid
+    del X_train
     del t_train
 
     if not NNET:
@@ -537,6 +537,8 @@ def main():
 
     # get rid of training data and load test data
     del train_ids
+    del X_valid
+    del t_valid
 
     print "extracting test features..."
     X_test, _, t_ignore, test_ids = extract_feats(
