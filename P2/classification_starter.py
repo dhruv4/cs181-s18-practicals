@@ -105,6 +105,8 @@ import util
 #   all-system-calls.pickle,
 #       which maps system call names to class integers
 
+NNET = True
+TEST_PERCENT = 0.00
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
 
@@ -115,6 +117,12 @@ CONV1_STRIDE = 1
 CONV2_FILTER_SIZE = CONV1_FILTER_SIZE * 2
 CONV2_STRIDE = 1
 
+RFR_MAX_FEATURES = 0.99
+RFR_TREES = 800
+
+BINARY_REPR = True
+
+RETRAINING_MODEL = True
 
 all_system_calls = set()
 
@@ -126,7 +134,7 @@ code_binary_digits_mapping = {}
 time_str = "%M:%S.%f"
 
 GENERATING_FEATURES = {
-    "test": False,
+    "test": True if not BINARY_REPR else False,
     "train": False
 }
 
@@ -134,16 +142,9 @@ GENERATING_CODE_BINARY_MAPPING = False
 
 TYPES_SYSTEM_CALLS = 107
 
-RETRAINING_MODEL = True
 
-BINARY_REPR = True
 
-# feature_set_string = "107"
-feature_set_string = "bin"
-
-RFR_MAX_FEATURES = 0.99
-RFR_TREES = 800
-
+feature_set_string = "bin" if BINARY_REPR else "107"
 
 def add_all_system_calls(tree):
     """
@@ -445,18 +446,21 @@ def main():
     print "done extracting training features"
     print
     X_train, X_valid, t_train, t_valid = train_test_split(
-        X_train, t_train, test_size=0.33)
+        X_train, t_train, test_size=TEST_PERCENT)
 
     print "learning..."
-    #rfrclf = RandomForestClassifier(
-    #    verbose=5,
-    #    n_jobs=-1,
-    #    max_features=RFR_MAX_FEATURES,
-    #    n_estimators=RFR_TREES,
-    #    oob_score=True
-    #)
-    tt = X_train.toarray().astype(np.int32)
-    rfrclf = NeuralNet(
+    if not NNET:
+        rfrclf = RandomForestClassifier(
+           verbose=5,
+           n_jobs=-1,
+           max_features=RFR_MAX_FEATURES,
+           n_estimators=RFR_TREES,
+           oob_score=True
+        )
+
+    if NNET:
+        tt = X_train.toarray().astype(np.int32)
+        rfrclf = NeuralNet(
             layers=[(layers.InputLayer, {
                     "shape": (None, X_train.shape[0], X_train.shape[1])}),
                     (layers.Conv1DLayer, {
@@ -498,27 +502,40 @@ def main():
         )
 
     if RETRAINING_MODEL:
-        #rfrclf.fit(X_train, t_train)
-        rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
-	joblib.dump(rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
+        if NNET:
+            rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
+            pickle.dump(
+                rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
+            del tt
+        else:
+            rfrclf.fit(X_train, t_train)
+            joblib.dump(
+                rfrclf, "classifier-rfr-model-%s.pickle" % feature_set_string)
 
         print "done learning"
         print
 
-        print "validation testing"
-
-        validrfr = rfrclf.predict(X_valid.toarray())
-        print "rfr prediction", validrfr
-        print "t actual", t_valid
-        print eval(validrfr, t_valid)
-
     else:
-        rfrclf = joblib.load("classifier-model.pickle")
-        print "loaded trained model, not validating"
+        rfrclf = joblib.load("classifier-%s-model-%s.pickle" %
+                             ("nn" if NNET else "rfr", feature_set_string))
+        print "loaded trained model"
+
+    print "validation testing"
+    del X_valid
+    del t_train
+
+    if not NNET:
+        validrfr = rfrclf.predict(X_valid)
+    else:
+        validrfr = rfrclf.predict(X_valid.reshape(X_valid.shape + (1,)))
+
+    print "prediction", validrfr
+    print "t actual", t_valid
+    print eval(validrfr, t_valid)
+
+
 
     # get rid of training data and load test data
-    del X_train
-    del t_train
     del train_ids
 
     print "extracting test features..."
