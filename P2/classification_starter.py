@@ -90,6 +90,7 @@ from scipy import sparse
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV
 
 from sklearn.externals import joblib
 
@@ -122,7 +123,7 @@ code_binary_digits_mapping = {}
 time_str = "%M:%S.%f"
 
 GENERATING_FEATURES = {
-    "test": True,
+    "test": False,
     "train": False
 }
 
@@ -130,7 +131,7 @@ GENERATING_CODE_BINARY_MAPPING = False
 
 TYPES_SYSTEM_CALLS = 107
 
-RETRAINING_MODEL = False
+RETRAINING_MODEL = True
 
 BINARY_REPR = True
 
@@ -375,10 +376,6 @@ def harshita_feats(tree):
                 features[(-1) * (call + 1)] = int(features[call] / total_calls)
 
     features[(MAX_SYSTEM_CALLS + 1) * -1] = total_duration
-    # dict.update(c, sys_call_counts)
-    # dict.update(c, features)
-    # for item in features.items():
-    #     print item
     return features
 
 
@@ -441,30 +438,66 @@ def main():
     print "done extracting training features"
     print
     X_train, X_valid, t_train, t_valid = train_test_split(
-        X_train, t_train, test_size=0.33)
+        X_train, t_train, test_size=0.0)
+
+    # n_estimators = [int(x) for x in np.linspace(start=200, stop=1000, num=10)]
+    max_features = ["auto", "log2"]
+    max_features.extend(
+        [x * 0.01 for x in np.linspace(start=25, stop=100, num=5)])
+    max_depth = [int(x) for x in np.linspace(10, 110, num=11)]
+    max_depth.append(None)
+    min_samples_split = [2, 5, 10]
+    min_samples_leaf = [1, 2, 4]
+
+    random_grid = {
+        # "n_estimators": n_estimators,
+        "max_features": max_features,
+        'max_depth': max_depth,
+        'min_samples_split': min_samples_split,
+        'min_samples_leaf': min_samples_leaf
+    }
+
+    if False:
+        rf = RandomForestClassifier(
+            verbose=1,
+            n_jobs=-1,
+            oob_score=True,
+            n_estimators=1000
+        )
+
+        rfrclf = RandomizedSearchCV(
+            estimator=rf,
+            param_distributions=random_grid,
+            n_iter=80,
+            cv=10,
+            verbose=5,
+            random_state=42,
+            n_jobs=-1
+        )
+    else:
+        rfrclf = RandomForestClassifier(
+            verbose=1,
+            n_jobs=-1,
+            oob_score=True,
+            n_estimators=1000,
+            max_features=0.95
+        )
 
     print "learning..."
-    rfrclf = RandomForestClassifier(
-        verbose=5,
-        n_jobs=-1,
-        max_features=RFR_MAX_FEATURES,
-        n_estimators=RFR_TREES,
-        oob_score=True
-    )
 
     if RETRAINING_MODEL:
         rfrclf.fit(X_train, t_train)
         joblib.dump(rfrclf, "classifier-model.pickle")
 
         print "done learning"
-        print
+        print rfrclf.best_params_
 
-        print "validation testing"
+        # print "validation testing"
 
-        validrfr = rfrclf.predict(X_valid.toarray())
-        print "rfr prediction", validrfr
-        print "t actual", t_valid
-        print eval(validrfr, t_valid)
+        # validrfr = rfrclf.predict(X_valid.toarray())
+        # print "rfr prediction", validrfr
+        # print "t actual", t_valid
+        # print eval(validrfr, t_valid)
 
     else:
         rfrclf = joblib.load("classifier-model.pickle")
