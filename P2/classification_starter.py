@@ -92,6 +92,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 from sklearn.externals import joblib
+import lasagne
+from lasagne import layers
+from lasagne.updates import nesterov_momentum
+from nolearn.lasagne import NeuralNet
 
 import util
 
@@ -104,8 +108,8 @@ import util
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
 
-PROPERTIES_PER_CLASS_MULT = 12
-CONV1_FILTER_SIZE = 25
+PROPERTIES_PER_CLASS_MULT = 2
+CONV1_FILTER_SIZE = 5
 CONV1_STRIDE = 1
 
 CONV2_FILTER_SIZE = CONV1_FILTER_SIZE * 2
@@ -122,7 +126,7 @@ code_binary_digits_mapping = {}
 time_str = "%M:%S.%f"
 
 GENERATING_FEATURES = {
-    "test": True,
+    "test": False,
     "train": False
 }
 
@@ -130,15 +134,15 @@ GENERATING_CODE_BINARY_MAPPING = False
 
 TYPES_SYSTEM_CALLS = 107
 
-RETRAINING_MODEL = False
+RETRAINING_MODEL = True
 
 BINARY_REPR = True
 
 # feature_set_string = "107"
 feature_set_string = "bin"
 
-RFR_MAX_FEATURES = 0.95
-RFR_TREES = 400
+RFR_MAX_FEATURES = 0.99
+RFR_TREES = 800
 
 
 def add_all_system_calls(tree):
@@ -444,17 +448,59 @@ def main():
         X_train, t_train, test_size=0.33)
 
     print "learning..."
-    rfrclf = RandomForestClassifier(
-        verbose=5,
-        n_jobs=-1,
-        max_features=RFR_MAX_FEATURES,
-        n_estimators=RFR_TREES,
-        oob_score=True
-    )
+    #rfrclf = RandomForestClassifier(
+    #    verbose=5,
+    #    n_jobs=-1,
+    #    max_features=RFR_MAX_FEATURES,
+    #    n_estimators=RFR_TREES,
+    #    oob_score=True
+    #)
+    tt = X_train.toarray().astype(np.int32)
+    rfrclf = NeuralNet(
+            layers=[(layers.InputLayer, {
+                    "shape": (None, X_train.shape[0], X_train.shape[1])}),
+                    (layers.Conv1DLayer, {
+                        "num_filters": len(
+                            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+                        "filter_size": CONV1_FILTER_SIZE,
+                        "stride": CONV1_STRIDE,
+                        "untie_biases": True,
+                        "nonlinearity": lasagne.nonlinearities.sigmoid,
+                        "W": lasagne.init.GlorotUniform()
+                    }),
+                    # ('maxpool1', layers.MaxPool1DLayer),
+                    (layers.Conv1DLayer, {
+                        "num_filters": len(
+                            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+                        "filter_size": CONV2_FILTER_SIZE,
+                        "stride": CONV2_STRIDE,
+                        "pad": "full",
+                        "untie_biases": True,
+                        "nonlinearity": lasagne.nonlinearities.sigmoid,
+                        "W": lasagne.init.GlorotUniform()
+                    }),
+                    # ('maxpool2', layers.MaxPool2DLayer),
+                    (layers.DropoutLayer, {"p": 0.5}),
+                    (layers.DenseLayer, {
+                        "num_units": 256,
+                        "nonlinearity": lasagne.nonlinearities.sigmoid}),
+                    (layers.DropoutLayer, {"p": 0.5}),
+                    (layers.DenseLayer, {
+                        "nonlinearity": lasagne.nonlinearities.sigmoid,
+                        "num_units": len(util.malware_classes)}),
+                    ],
+            # optimization method params
+            update=nesterov_momentum,
+            update_learning_rate=0.01,
+            update_momentum=0.9,
+            max_epochs=10,
+            verbose=10,
+        )
 
     if RETRAINING_MODEL:
-        rfrclf.fit(X_train, t_train)
-        joblib.dump(rfrclf, "classifier-model.pickle")
+        #rfrclf.fit(X_train, t_train)
+        rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
+	joblib.dump(rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
 
         print "done learning"
         print
