@@ -92,6 +92,10 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
 from sklearn.externals import joblib
+import lasagne
+from lasagne import layers
+from lasagne.updates import nesterov_momentum
+from nolearn.lasagne import NeuralNet
 
 import util
 
@@ -101,16 +105,24 @@ import util
 #   all-system-calls.pickle,
 #       which maps system call names to class integers
 
+NNET = True
+TEST_PERCENT = 0.00
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
 
-PROPERTIES_PER_CLASS_MULT = 12
-CONV1_FILTER_SIZE = 25
+PROPERTIES_PER_CLASS_MULT = 2
+CONV1_FILTER_SIZE = 5
 CONV1_STRIDE = 1
 
 CONV2_FILTER_SIZE = CONV1_FILTER_SIZE * 2
 CONV2_STRIDE = 1
 
+RFR_MAX_FEATURES = 0.99
+RFR_TREES = 800
+
+BINARY_REPR = True
+
+RETRAINING_MODEL = True
 
 all_system_calls = set()
 
@@ -122,7 +134,7 @@ code_binary_digits_mapping = {}
 time_str = "%M:%S.%f"
 
 GENERATING_FEATURES = {
-    "test": True,
+    "test": True if not BINARY_REPR else False,
     "train": False
 }
 
@@ -130,16 +142,9 @@ GENERATING_CODE_BINARY_MAPPING = False
 
 TYPES_SYSTEM_CALLS = 107
 
-RETRAINING_MODEL = False
 
-BINARY_REPR = True
 
-# feature_set_string = "107"
-feature_set_string = "bin"
-
-RFR_MAX_FEATURES = 0.95
-RFR_TREES = 400
-
+feature_set_string = "bin" if BINARY_REPR else "107"
 
 def add_all_system_calls(tree):
     """
@@ -444,52 +449,108 @@ def main():
     print "done extracting training features"
     print
     X_train, X_valid, t_train, t_valid = train_test_split(
-        X_train, t_train, test_size=0.33)
+        X_train, t_train, test_size=TEST_PERCENT)
 
     print "learning..."
-    rfrclf = RandomForestClassifier(
-        verbose=5,
-        n_jobs=-1,
-        max_features=RFR_MAX_FEATURES,
-        n_estimators=RFR_TREES,
-        oob_score=True
-    )
+    if not NNET:
+        rfrclf = RandomForestClassifier(
+           verbose=5,
+           n_jobs=-1,
+           max_features=RFR_MAX_FEATURES,
+           n_estimators=RFR_TREES,
+           oob_score=True
+        )
+
+    if NNET:
+        tt = X_train.toarray().astype(np.int32)
+        rfrclf = NeuralNet(
+            layers=[(layers.InputLayer, {
+                    "shape": (None, X_train.shape[0], X_train.shape[1])}),
+                    (layers.Conv1DLayer, {
+                        "num_filters": len(
+                            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+                        "filter_size": CONV1_FILTER_SIZE,
+                        "stride": CONV1_STRIDE,
+                        "untie_biases": True,
+                        "nonlinearity": lasagne.nonlinearities.sigmoid,
+                        "W": lasagne.init.GlorotUniform()
+                    }),
+                    # ('maxpool1', layers.MaxPool1DLayer),
+                    (layers.Conv1DLayer, {
+                        "num_filters": len(
+                            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+                        "filter_size": CONV2_FILTER_SIZE,
+                        "stride": CONV2_STRIDE,
+                        "pad": "full",
+                        "untie_biases": True,
+                        "nonlinearity": lasagne.nonlinearities.sigmoid,
+                        "W": lasagne.init.GlorotUniform()
+                    }),
+                    # ('maxpool2', layers.MaxPool2DLayer),
+                    (layers.DropoutLayer, {"p": 0.5}),
+                    (layers.DenseLayer, {
+                        "num_units": 256,
+                        "nonlinearity": lasagne.nonlinearities.sigmoid}),
+                    (layers.DropoutLayer, {"p": 0.5}),
+                    (layers.DenseLayer, {
+                        "nonlinearity": lasagne.nonlinearities.sigmoid,
+                        "num_units": len(util.malware_classes)}),
+                    ],
+            # optimization method params
+            update=nesterov_momentum,
+            update_learning_rate=0.01,
+            update_momentum=0.9,
+            max_epochs=10,
+            verbose=10,
+        )
 
     gbcclf = GradientBoostingClassifier()
 
     if RETRAINING_MODEL:
-        rfrclf.fit(X_train, t_train)
-        joblib.dump(rfrclf, "rfr-classifier-model.pickle")
-
-        gbcclf.fit(X_train, t_train)
-        joblib.dump(gbcclf, "gbc-classifier-model.pickle")
+        if NNET:
+            rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
+            pickle.dump(
+                rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
+            del tt
+        else:
+            rfrclf.fit(X_train, t_train)
+            joblib.dump(
+                rfrclf, "classifier-rfr-model-%s.pickle" % feature_set_string)
+            gbcclf.fit(X_train, t_train)
+            joblib.dump(gbcclf, "classifier-gbc-model.pickle")
 
         print "done learning"
         print
 
-        print "validation testing"
+    else:
+        rfrclf = joblib.load("classifier-%s-model-%s.pickle" %
+                             ("nn" if NNET else "rfr", feature_set_string))
+        print "loaded trained model"
 
-        validrfr = rfrclf.predict(X_valid.toarray())
+    print "validation testing"
+    del X_train
+    del t_train
 
-        print "rfr prediction", validrfr
-        print "t actual", t_valid
-        print eval(validrfr, t_valid)
+    if not NNET:
+        validrfr = rfrclf.predict(X_valid)
+    else:
+        validrfr = rfrclf.predict(X_valid.reshape(X_valid.shape + (1,)))
 
-        validgbc = gbcclf.predict(X_valid.toarray())
+    print "prediction", validrfr
+    print "t actual", t_valid
+    print eval(validrfr, t_valid)
 
-        print "rfr prediction", validgbc
+    if not NNET:
+        validgbc = gbcclf.predict(X_valid)
+
+        print "gbc prediction", validgbc
         print "t actual", t_valid
         print eval(validgbc, t_valid)
 
-    else:
-        rfrclf = joblib.load("rfr-classifier-model.pickle")
-        gbcclf = joblib.load("gbc-classifier-model.pickle")
-        print "loaded trained model, not validating"
-
     # get rid of training data and load test data
-    del X_train
-    del t_train
     del train_ids
+    del X_valid
+    del t_valid
 
     print "extracting test features..."
     X_test, _, t_ignore, test_ids = extract_feats(
@@ -510,7 +571,7 @@ def main():
 
     print "writing predictions..."
     util.write_predictions(predsrfr, test_ids, outputfilerfr)
-    util.write_predictions(predsrfr, test_ids, outputfilegbc)
+    util.write_predictions(predsgbc, test_ids, outputfilegbc)
 
     print "done!"
 
