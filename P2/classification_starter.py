@@ -105,8 +105,10 @@ import util
 #   all-system-calls.pickle,
 #       which maps system call names to class integers
 
-NNET = True
-TEST_PERCENT = 0.00
+NNET = False
+GBC = True
+
+TEST_PERCENT = 0.33
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
 
@@ -120,6 +122,8 @@ CONV2_STRIDE = 1
 RFR_MAX_FEATURES = 0.99
 RFR_TREES = 800
 
+GB_N_ESTIMATORS = 2
+GB_MAX_DEPTH = 3
 BINARY_REPR = True
 
 RETRAINING_MODEL = True
@@ -134,7 +138,7 @@ code_binary_digits_mapping = {}
 time_str = "%M:%S.%f"
 
 GENERATING_FEATURES = {
-    "test": True if not BINARY_REPR else False,
+    "test": False,
     "train": False
 }
 
@@ -504,7 +508,11 @@ def main():
             verbose=10,
         )
 
-    gbcclf = GradientBoostingClassifier()
+    rfrclf = GradientBoostingClassifier(
+        verbose=10,
+        n_estimators=GB_N_ESTIMATORS,
+        max_depth=GB_MAX_DEPTH
+        )
 
     if RETRAINING_MODEL:
         if NNET:
@@ -512,12 +520,14 @@ def main():
             pickle.dump(
                 rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
             del tt
+        elif GBC:
+            rfrclf.fit(X_train, t_train)
+            joblib.dump(
+                rfrclf, "classifier-gbc-model-%s.pickle" % feature_set_string)
         else:
             rfrclf.fit(X_train, t_train)
             joblib.dump(
                 rfrclf, "classifier-rfr-model-%s.pickle" % feature_set_string)
-            gbcclf.fit(X_train, t_train)
-            joblib.dump(gbcclf, "classifier-gbc-model.pickle")
 
         print "done learning"
         print
@@ -540,13 +550,6 @@ def main():
     print "t actual", t_valid
     print eval(validrfr, t_valid)
 
-    if not NNET:
-        validgbc = gbcclf.predict(X_valid)
-
-        print "gbc prediction", validgbc
-        print "t actual", t_valid
-        print eval(validgbc, t_valid)
-
     # get rid of training data and load test data
     del train_ids
     del X_valid
@@ -562,9 +565,6 @@ def main():
 
     predsrfr = rfrclf.predict(X_test)
     print predsrfr
-
-    predsgbc = gbcclf.predict(X_test)
-    print predsgbc
 
     print "done making predictions"
     print
