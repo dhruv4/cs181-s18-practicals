@@ -88,7 +88,7 @@ except ImportError:
 import numpy as np
 from scipy import sparse
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 
 from sklearn.externals import joblib
@@ -433,6 +433,9 @@ def main():
     outputfilerfr = "rfr_predictions%s.csv" % time.strftime(
         "%Y%m%d-%H%M%S")
 
+    outputfilegbc = "gbc_predictions%s.csv" % time.strftime(
+        "%Y%m%d-%H%M%S")
+
     ffs = [harshita_feats]
 
     print "extracting training features..."
@@ -452,9 +455,14 @@ def main():
         oob_score=True
     )
 
+    gbcclf = GradientBoostingClassifier()
+
     if RETRAINING_MODEL:
         rfrclf.fit(X_train, t_train)
-        joblib.dump(rfrclf, "classifier-model.pickle")
+        joblib.dump(rfrclf, "rfr-classifier-model.pickle")
+
+        gbcclf.fit(X_train, t_train)
+        joblib.dump(gbcclf, "gbc-classifier-model.pickle")
 
         print "done learning"
         print
@@ -462,12 +470,20 @@ def main():
         print "validation testing"
 
         validrfr = rfrclf.predict(X_valid.toarray())
+
         print "rfr prediction", validrfr
         print "t actual", t_valid
         print eval(validrfr, t_valid)
 
+        validgbc = gbcclf.predict(X_valid.toarray())
+
+        print "rfr prediction", validgbc
+        print "t actual", t_valid
+        print eval(validgbc, t_valid)
+
     else:
-        rfrclf = joblib.load("classifier-model.pickle")
+        rfrclf = joblib.load("rfr-classifier-model.pickle")
+        gbcclf = joblib.load("gbc-classifier-model.pickle")
         print "loaded trained model, not validating"
 
     # get rid of training data and load test data
@@ -486,11 +502,15 @@ def main():
     predsrfr = rfrclf.predict(X_test)
     print predsrfr
 
+    predsgbc = gbcclf.predict(X_test)
+    print predsgbc
+
     print "done making predictions"
     print
 
     print "writing predictions..."
     util.write_predictions(predsrfr, test_ids, outputfilerfr)
+    util.write_predictions(predsrfr, test_ids, outputfilegbc)
 
     print "done!"
 
