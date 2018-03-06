@@ -96,6 +96,7 @@ import lasagne
 from lasagne import layers
 from lasagne.updates import nesterov_momentum
 from nolearn.lasagne import NeuralNet
+from sklearn.model_selection import GridSearchCV
 
 import util
 
@@ -122,7 +123,7 @@ CONV2_STRIDE = 1
 RFR_MAX_FEATURES = 0.99
 RFR_TREES = 800
 
-GB_N_ESTIMATORS = 2
+GB_N_ESTIMATORS = 100
 GB_MAX_DEPTH = 3
 BINARY_REPR = True
 
@@ -507,12 +508,17 @@ def main():
             max_epochs=10,
             verbose=10,
         )
-
-    rfrclf = GradientBoostingClassifier(
-        verbose=10,
-        n_estimators=GB_N_ESTIMATORS,
-        max_depth=GB_MAX_DEPTH
+    elif GBC:
+        gb = GradientBoostingClassifier(
+            verbose=10,
+            n_estimators=GB_N_ESTIMATORS
         )
+        param_grid = {
+            "max_depth": [3, 10, 200, 1000],
+            "learning_rate": [x / 100.0 for x in range(1, 100, 5)],
+            "max_features": [x / 100.0 for x in range(50, 101, 10)]
+        }
+        rfrclf = GridSearchCV(gb, param_grid, verbose=10, n_jobs=-1)
 
     if RETRAINING_MODEL:
         if NNET:
@@ -571,7 +577,7 @@ def main():
 
     print "writing predictions..."
     util.write_predictions(predsrfr, test_ids, outputfilerfr)
-    util.write_predictions(predsgbc, test_ids, outputfilegbc)
+    # util.write_predictions(predsgbc, test_ids, outputfilegbc)
 
     print "done!"
 
