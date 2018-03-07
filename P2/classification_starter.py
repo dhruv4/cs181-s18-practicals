@@ -107,10 +107,10 @@ import util
 #   all-system-calls.pickle,
 #       which maps system call names to class integers
 
-NNET = False
-GBC = True
+NNET = True
+GBC = False
 
-TEST_PERCENT = 0.33
+TEST_PERCENT = 0.01
 GENERATING_SYSTEM_CALL_LIST = False
 MAX_SYSTEM_CALLS = 294035
 
