@@ -89,7 +89,7 @@ import numpy as np
 from scipy import sparse
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.neuralnetwork import MLPClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
 from sklearn.externals import joblib
