@@ -99,6 +99,8 @@ from lasagne.updates import nesterov_momentum
 from nolearn.lasagne import NeuralNet
 from sklearn.model_selection import GridSearchCV
 
+
+
 import util
 
 # Two pickled files that we rely on:
@@ -509,7 +511,10 @@ def main():
         #     max_epochs=10,
         #     verbose=10,
         # )
-        rfrclf = MLPClassifier(verbose=10, hidden_layer_sizes=(12*12, 12*6),
+        rfrclf = MLPClassifier(verbose=10,
+                               hidden_layer_sizes=(12 * 12 * 12,
+                                                   12 * 12,
+                                                   12 * 6),
                                early_stopping=True, validation_fraction=0.33)
     elif GBC:
         gb = GradientBoostingClassifier(
@@ -528,7 +533,9 @@ def main():
             # rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
             rfrclf.fit(X_train, t_train)
             pickle.dump(
-                rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
+                rfrclf,
+                open("classifier-nn-model-%s.pickle" % feature_set_string),
+                     "wb")
             # del tt
         elif GBC:
             rfrclf.fit(X_train, t_train)
