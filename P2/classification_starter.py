@@ -89,6 +89,7 @@ import numpy as np
 from scipy import sparse
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.neuralnetwork import MLPClassifier
 from sklearn.model_selection import train_test_split
 
 from sklearn.externals import joblib
@@ -467,47 +468,49 @@ def main():
         )
 
     if NNET:
-        tt = X_train.toarray().astype(np.int32)
-        rfrclf = NeuralNet(
-            layers=[(layers.InputLayer, {
-                    "shape": (None, X_train.shape[0], X_train.shape[1])}),
-                    (layers.Conv1DLayer, {
-                        "num_filters": len(
-                            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-                        "filter_size": CONV1_FILTER_SIZE,
-                        "stride": CONV1_STRIDE,
-                        "untie_biases": True,
-                        "nonlinearity": lasagne.nonlinearities.sigmoid,
-                        "W": lasagne.init.GlorotUniform()
-                    }),
-                    # ('maxpool1', layers.MaxPool1DLayer),
-                    (layers.Conv1DLayer, {
-                        "num_filters": len(
-                            util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-                        "filter_size": CONV2_FILTER_SIZE,
-                        "stride": CONV2_STRIDE,
-                        "pad": "full",
-                        "untie_biases": True,
-                        "nonlinearity": lasagne.nonlinearities.sigmoid,
-                        "W": lasagne.init.GlorotUniform()
-                    }),
-                    # ('maxpool2', layers.MaxPool2DLayer),
-                    (layers.DropoutLayer, {"p": 0.5}),
-                    (layers.DenseLayer, {
-                        "num_units": 256,
-                        "nonlinearity": lasagne.nonlinearities.sigmoid}),
-                    (layers.DropoutLayer, {"p": 0.5}),
-                    (layers.DenseLayer, {
-                        "nonlinearity": lasagne.nonlinearities.sigmoid,
-                        "num_units": len(util.malware_classes)}),
-                    ],
-            # optimization method params
-            update=nesterov_momentum,
-            update_learning_rate=0.01,
-            update_momentum=0.9,
-            max_epochs=10,
-            verbose=10,
-        )
+        # tt = X_train.toarray().astype(np.int32)
+        # rfrclf = NeuralNet(
+        #     layers=[(layers.InputLayer, {
+        #             "shape": (None, X_train.shape[0], X_train.shape[1])}),
+        #             (layers.Conv1DLayer, {
+        #                 "num_filters": len(
+        #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+        #                 "filter_size": CONV1_FILTER_SIZE,
+        #                 "stride": CONV1_STRIDE,
+        #                 "untie_biases": True,
+        #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
+        #                 "W": lasagne.init.GlorotUniform()
+        #             }),
+        #             # ('maxpool1', layers.MaxPool1DLayer),
+        #             (layers.Conv1DLayer, {
+        #                 "num_filters": len(
+        #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
+        #                 "filter_size": CONV2_FILTER_SIZE,
+        #                 "stride": CONV2_STRIDE,
+        #                 "pad": "full",
+        #                 "untie_biases": True,
+        #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
+        #                 "W": lasagne.init.GlorotUniform()
+        #             }),
+        #             # ('maxpool2', layers.MaxPool2DLayer),
+        #             (layers.DropoutLayer, {"p": 0.5}),
+        #             (layers.DenseLayer, {
+        #                 "num_units": 256,
+        #                 "nonlinearity": lasagne.nonlinearities.sigmoid}),
+        #             (layers.DropoutLayer, {"p": 0.5}),
+        #             (layers.DenseLayer, {
+        #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
+        #                 "num_units": len(util.malware_classes)}),
+        #             ],
+        #     # optimization method params
+        #     update=nesterov_momentum,
+        #     update_learning_rate=0.01,
+        #     update_momentum=0.9,
+        #     max_epochs=10,
+        #     verbose=10,
+        # )
+        rfrclf = MLPClassifier(verbose=10, hidden_layer_sizes=(12*12, 12*6),
+                               early_stopping=True, validation_fraction=0.33)
     elif GBC:
         gb = GradientBoostingClassifier(
             verbose=10,
@@ -515,17 +518,18 @@ def main():
         )
         param_grid = {
             "max_depth": [3, 10, 200, 1000],
-            "learning_rate": [x / 100.0 for x in range(1, 100, 5)],
-            "max_features": [x / 100.0 for x in range(50, 101, 10)]
+            "learning_rate": [x / 100.0 for x in range(1, 100, 10)],
+            "max_features": [x / 100.0 for x in range(70, 101, 10)]
         }
         rfrclf = GridSearchCV(gb, param_grid, verbose=10, n_jobs=-1)
 
     if RETRAINING_MODEL:
         if NNET:
-            rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
+            # rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
+            rfrclf.fit(X_train, t_train)
             pickle.dump(
                 rfrclf, "classifier-nn-model-%s.pickle" % feature_set_string)
-            del tt
+            # del tt
         elif GBC:
             rfrclf.fit(X_train, t_train)
             joblib.dump(
@@ -547,10 +551,10 @@ def main():
     del X_train
     del t_train
 
-    if not NNET:
-        validrfr = rfrclf.predict(X_valid)
-    else:
-        validrfr = rfrclf.predict(X_valid.reshape(X_valid.shape + (1,)))
+    # if not NNET:
+    validrfr = rfrclf.predict(X_valid)
+    # else:
+        # validrfr = rfrclf.predict(X_valid.reshape(X_valid.shape + (1,)))
 
     print "prediction", validrfr
     print "t actual", t_valid
