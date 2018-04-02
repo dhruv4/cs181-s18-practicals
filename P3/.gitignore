@@ -1,0 +1,8 @@
+*.tar.gz
+test/*
+train/*
+*.xml
+Icon?
+*.npy
+*.csv
+.DS_Store

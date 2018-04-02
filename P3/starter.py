@@ -116,10 +116,16 @@ def one_hot_encode(labels):
 parent_dir = 'Sound-Data'
 train = "train.csv"
 test = "test.csv"
-features, labels = extract_features(train, train=True)
-np.save("features-saved.numpy", features)
-np.save("labels-saved.numpy", labels)
+# features, labels = extract_features(train, train=True)
+# np.save("features-saved", features)
+# np.save("labels-saved", labels)
 # test_features = extract_features(test, train=False)
+
+features = np.load("features-saved.npy")
+labels = np.load("labels-saved.npy")
+
+# exit(0)
+
 print labels.shape
 labels = one_hot_encode(labels)
 
@@ -197,4 +203,4 @@ with tf.Session() as session:
     fig = plt.figure(figsize=(15, 10))
     plt.plot(cost_history)
     plt.axis([0, training_iterations, 0, np.max(cost_history)])
-    plt.savefig("loss.fig")
+    plt.savefig("loss.png")
