@@ -99,9 +99,12 @@ from lasagne.updates import nesterov_momentum
 from nolearn.lasagne import NeuralNet
 from sklearn.model_selection import GridSearchCV
 
-
+import torch
+import sparseconvnet as scn
 
 import util
+
+use_gpu = torch.cuda.is_available()
 
 # Two pickled files that we rely on:
 #   all-system-calls-classes.pickle,
@@ -109,8 +112,9 @@ import util
 #   all-system-calls.pickle,
 #       which maps system call names to class integers
 
-NNET = True
+NNET = False
 GBC = False
+CONVNET = True
 
 TEST_PERCENT = 0.01
 GENERATING_SYSTEM_CALL_LIST = False
@@ -443,10 +447,7 @@ def main():
     train_dir = "train"
     test_dir = "test"
 
-    outputfilerfr = "rfr_predictions%s.csv" % time.strftime(
-        "%Y%m%d-%H%M%S")
-
-    outputfilegbc = "gbc_predictions%s.csv" % time.strftime(
+    outputfile = "model_predictions%s.csv" % time.strftime(
         "%Y%m%d-%H%M%S")
 
     ffs = [harshita_feats]
@@ -460,62 +461,12 @@ def main():
         X_train, t_train, test_size=TEST_PERCENT)
 
     print "learning..."
-    if not NNET:
-        rfrclf = RandomForestClassifier(
-           verbose=5,
-           n_jobs=-1,
-           max_features=RFR_MAX_FEATURES,
-           n_estimators=RFR_TREES,
-           oob_score=True
-        )
-
     if NNET:
-        # tt = X_train.toarray().astype(np.int32)
-        # rfrclf = NeuralNet(
-        #     layers=[(layers.InputLayer, {
-        #             "shape": (None, X_train.shape[0], X_train.shape[1])}),
-        #             (layers.Conv1DLayer, {
-        #                 "num_filters": len(
-        #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-        #                 "filter_size": CONV1_FILTER_SIZE,
-        #                 "stride": CONV1_STRIDE,
-        #                 "untie_biases": True,
-        #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
-        #                 "W": lasagne.init.GlorotUniform()
-        #             }),
-        #             # ('maxpool1', layers.MaxPool1DLayer),
-        #             (layers.Conv1DLayer, {
-        #                 "num_filters": len(
-        #                     util.malware_classes) * PROPERTIES_PER_CLASS_MULT,
-        #                 "filter_size": CONV2_FILTER_SIZE,
-        #                 "stride": CONV2_STRIDE,
-        #                 "pad": "full",
-        #                 "untie_biases": True,
-        #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
-        #                 "W": lasagne.init.GlorotUniform()
-        #             }),
-        #             # ('maxpool2', layers.MaxPool2DLayer),
-        #             (layers.DropoutLayer, {"p": 0.5}),
-        #             (layers.DenseLayer, {
-        #                 "num_units": 256,
-        #                 "nonlinearity": lasagne.nonlinearities.sigmoid}),
-        #             (layers.DropoutLayer, {"p": 0.5}),
-        #             (layers.DenseLayer, {
-        #                 "nonlinearity": lasagne.nonlinearities.sigmoid,
-        #                 "num_units": len(util.malware_classes)}),
-        #             ],
-        #     # optimization method params
-        #     update=nesterov_momentum,
-        #     update_learning_rate=0.01,
-        #     update_momentum=0.9,
-        #     max_epochs=10,
-        #     verbose=10,
-        # )
-        rfrclf = MLPClassifier(verbose=10,
-                               hidden_layer_sizes=(12 * 12 * 12,
-                                                   12 * 12,
-                                                   12 * 6),
-                               early_stopping=True, validation_fraction=0.33)
+        mymodel = MLPClassifier(verbose=10,
+                                hidden_layer_sizes=(12 * 12 * 12,
+                                                    12 * 12,
+                                                    12 * 6),
+                                early_stopping=True, validation_fraction=0.33)
     elif GBC:
         gb = GradientBoostingClassifier(
             verbose=10,
@@ -526,42 +477,70 @@ def main():
             "learning_rate": [x / 100.0 for x in range(1, 100, 10)],
             "max_features": [x / 100.0 for x in range(70, 101, 10)]
         }
-        rfrclf = GridSearchCV(gb, param_grid, verbose=10, n_jobs=-1)
-
-    if RETRAINING_MODEL:
-        if NNET:
-            # rfrclf.fit(tt.reshape(tt.shape + (1,)), t_train.astype(np.int32))
-            rfrclf.fit(X_train, t_train)
-            pickle.dump(
-                rfrclf,
-                open("classifier-nn-model-%s.pickle" % feature_set_string),
-                     "wb")
-            # del tt
-        elif GBC:
-            rfrclf.fit(X_train, t_train)
-            joblib.dump(
-                rfrclf, "classifier-gbc-model-%s.pickle" % feature_set_string)
-        else:
-            rfrclf.fit(X_train, t_train)
-            joblib.dump(
-                rfrclf, "classifier-rfr-model-%s.pickle" % feature_set_string)
-
-        print "done learning"
-        print
+        mymodel = GridSearchCV(gb, param_grid, verbose=10, n_jobs=-1)
+    elif CONVNET:
+        model = scn.Sequential().add(
+            scn.SparseVggNet(1)
+        ).add(
+            scn.SubmanifoldConvolution(1)
+        ).add(
+            scn.BatchNormalReLU()
+        ).add(
+            scn.SparseToDense(1)
+        )
+        if use_gpu:
+            model.cuda()
+        inputSpatialsize = model.input_spatial_size(torch.LongTensor())
 
     else:
-        rfrclf = joblib.load("classifier-%s-model-%s.pickle" %
-                             ("nn" if NNET else "rfr", feature_set_string))
-        print "loaded trained model"
+        mymodel = RandomForestClassifier(
+            verbose=5,
+            n_jobs=-1,
+            max_features=RFR_MAX_FEATURES,
+            n_estimators=RFR_TREES,
+            oob_score=True
+        )
+
+    if NNET:
+        if RETRAINING_MODEL:
+            mymodel.fit(X_train, t_train)
+            pickle.dump(
+                mymodel,
+                open("classifier-nn-model-%s.pickle" % feature_set_string),
+                "wb")
+        else:
+            mymodel = pickle.load(
+                open("classifier-%s-model-%s.pickle" %
+                     ("nn", feature_set_string)), "rb")
+            print "loaded trained model"
+    elif CONVNET:
+        pass
+    elif GBC:
+        if RETRAINING_MODEL:
+            mymodel.fit(X_train, t_train)
+            joblib.dump(
+                mymodel, "classifier-gbc-model-%s.pickle" % feature_set_string)
+        else:
+            mymodel = joblib.load("classifier-%s-model-%s.pickle" %
+                                  ("gbc", feature_set_string))
+            print "loaded trained model"
+    else:
+        if RETRAINING_MODEL:
+            mymodel.fit(X_train, t_train)
+            joblib.dump(
+                mymodel, "classifier-rfr-model-%s.pickle" % feature_set_string)
+        else:
+            mymodel = joblib.load("classifier-%s-model-%s.pickle" %
+                                  ("rfr", feature_set_string))
+            print "loaded trained model"
+    print "done learning"
+    print
 
     print "validation testing"
     del X_train
     del t_train
 
-    # if not NNET:
-    validrfr = rfrclf.predict(X_valid)
-    # else:
-        # validrfr = rfrclf.predict(X_valid.reshape(X_valid.shape + (1,)))
+    validrfr = mymodel.predict(X_valid)
 
     print "prediction", validrfr
     print "t actual", t_valid
@@ -580,15 +559,14 @@ def main():
 
     print "making predictions..."
 
-    predsrfr = rfrclf.predict(X_test)
+    predsrfr = mymodel.predict(X_test)
     print predsrfr
 
     print "done making predictions"
     print
 
     print "writing predictions..."
-    util.write_predictions(predsrfr, test_ids, outputfilerfr)
-    # util.write_predictions(predsgbc, test_ids, outputfilegbc)
+    util.write_predictions(predsrfr, test_ids, outputfile)
 
     print "done!"
 

@@ -1,3 +1,4 @@
+import time
 import pandas
 import librosa
 import matplotlib.pyplot as plt
@@ -5,25 +6,27 @@ import tensorflow as tf
 import numpy as np
 
 NUM_CLASSES = 10
-N_ROWS = None
+N_ROWS = 10
 VALIDATION_PERCENT = 0.70
 # N_ROWS = None
 
+LOAD_FEATURES = True
+LOAD_TEST_FEATURES = False
 
 frames = 41
 bands = 60
 
 feature_size = 2460  # 60x41
-num_labels = 10
+num_labels = NUM_CLASSES
 num_channels = 2
 
-batch_size = 50
+batch_size = min(N_ROWS, 1000)
 kernel_size = 30
 depth = 20
 num_hidden = 200
 
-learning_rate = 0.01
-training_iterations = 2000
+learning_rate = 0.001
+training_iterations = 20
 
 plt.style.use('ggplot')
 
@@ -40,6 +43,13 @@ plt.rcParams['legend.fontsize'] = 11
 plt.rcParams['figure.titlesize'] = 13
 
 
+def write_to_file(filename, predictions):
+    with open(filename, "w") as f:
+        f.write("Id,Prediction\n")
+        for i, p in enumerate(predictions):
+            f.write(str(i + 1) + "," + str(p) + "\n")
+
+
 def windows(data, window_size):
     start = 0
     while start < len(data):
@@ -52,6 +62,9 @@ def extract_features(fn, bands=60, frames=41, train=False,
     window_size = 512 * (frames - 1)
     log_specgrams = []
     labels = []
+    if not train:
+        N_ROWS = None
+    print "starting to read CSV"
     data = pandas.read_csv(fn, header=None, nrows=N_ROWS)
     print "read csv"
     if train:
@@ -59,10 +72,11 @@ def extract_features(fn, bands=60, frames=41, train=False,
         labels = data.iloc[:, -1]
 
         # drop from feature table
-        data.drop(data.columns[[0, ]], axis=1, inplace=True)
         data.drop(data.columns[[-1, ]], axis=1, inplace=True)
         data = np.array(data)
-        "dropped relevant stuff from train data"
+        print "dropped relevant stuff from train data"
+    else:
+        data.drop(data.columns[[0, ]], axis=1, inplace=True)
 
     def feats(sound_clip):
         for (start, end) in windows(sound_clip, window_size):
@@ -74,19 +88,6 @@ def extract_features(fn, bands=60, frames=41, train=False,
                 logspec = logspec.T.flatten()[:, np.newaxis].T
                 return logspec
 
-#     for l, sub_dir in enumerate(sub_dirs):
-# #         for fn in glob.glob(os.path.join(parent_dir, sub_dir, file_ext)):
-# #             sound_clip,s = librosa.load(fn)
-# #             label = fn.split('/')[2].split('-')[1]
-#             for (start,end) in windows(sound_clip,window_size):
-#                 if(len(sound_clip[start:end]) == window_size):
-#                     signal = sound_clip[start:end]
-#                     melspec = librosa.feature.melspectrogram(
-#                         y=signal, sr=sampling_rate, n_mels = bands)
-#                     logspec = librosa.logamplitude(melspec)
-#                     logspec = logspec.T.flatten()[:, np.newaxis].T
-#                     log_specgrams.append(logspec)
-# #                     labels.append(label)
     print "featurizing"
     print data.shape
     log_specgrams = np.apply_along_axis(feats, axis=1, arr=data)
@@ -108,26 +109,28 @@ def one_hot_encode(labels):
     n_labels = len(labels)
     n_unique_labels = NUM_CLASSES
     one_hot_encode = np.zeros((n_labels, n_unique_labels))
-    print one_hot_encode.shape
     one_hot_encode[np.arange(n_labels), labels] = 1
     return one_hot_encode
 
 
-parent_dir = 'Sound-Data'
-train = "train.csv"
-test = "test.csv"
-# features, labels = extract_features(train, train=True)
-# np.save("features-saved", features)
-# np.save("labels-saved", labels)
-# test_features = extract_features(test, train=False)
+if not LOAD_FEATURES:
+    train = "train.csv"
+    features, labels = extract_features(train, train=True)
+    np.save("features-saved.npy", features)
+    np.save("labels-saved.npy", labels)
+else:
+    features = np.load("features-saved.npy")
+    labels = np.load("labels-saved.npy")
 
-features = np.load("features-saved.npy")
-labels = np.load("labels-saved.npy")
-
-# exit(0)
-
-print labels.shape
 labels = one_hot_encode(labels)
+
+
+if not LOAD_TEST_FEATURES:
+    test = "test.csv"
+    test_features = extract_features(test, train=False)
+    np.save("test-features-saved", features)
+else:
+    test_features = np.load("test-features-saved.npy")
 
 
 def weight_variable(shape):
@@ -160,8 +163,8 @@ rnd_indices = np.random.rand(len(labels)) < VALIDATION_PERCENT
 
 train_x = features[rnd_indices]
 train_y = labels[rnd_indices]
-test_x = features[~rnd_indices]
-test_y = labels[~rnd_indices]
+valid_x = features[~rnd_indices]
+valid_y = labels[~rnd_indices]
 
 X = tf.placeholder(tf.float32, shape=[None, bands, frames, num_channels])
 Y = tf.placeholder(tf.float32, shape=[None, num_labels])
@@ -194,13 +197,23 @@ with tf.Session() as session:
         batch_x = train_x[offset:(offset + batch_size), :, :, :]
         batch_y = train_y[offset:(offset + batch_size), :]
 
-        _, c = session.run(
-            [optimizer, cross_entropy], feed_dict={X: batch_x, Y: batch_y})
+        _, c, ys = session.run(
+            [optimizer, cross_entropy, tf.argmax(input=y_, axis=1)],
+            feed_dict={X: batch_x, Y: batch_y})
         cost_history = np.append(cost_history, c)
+        # print ys
 
     print('Test accuracy: ', round(session.run(
-        accuracy, feed_dict={X: test_x, Y: test_y}), 3))
+        accuracy, feed_dict={X: valid_x, Y: valid_y}), 3))
+
     fig = plt.figure(figsize=(15, 10))
     plt.plot(cost_history)
     plt.axis([0, training_iterations, 0, np.max(cost_history)])
     plt.savefig("loss.png")
+
+    # get predictions TOO this is currently incorrect
+    test_predictions = session.run(
+        tf.argmax(input=y_, axis=1), feed_dict={X: test_features})
+
+    write_to_file(
+        "predictions%s.csv" % time.strftime("%Y%m%d-%H%M%S"), test_predictions)
