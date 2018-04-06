@@ -65,35 +65,46 @@ def tempogram(y, SAMPLE_RATE):
 
 def main():
 
-    GENERATE_FEATURES = False
+    # JUST SOME FOURIER TRANSFORM PARAMETERS
+    BINS_OCTAVE = 12 * 2
+    N_OCTAVES = 7
+    NUM_BINS = BINS_OCTAVE * N_OCTAVES
+
+    GENERATE_FEATURES = True
+    GENERATE_TEST = False
     N = None
 
     # Just some re-shaping and dimension finding
     # This means that the spectrograms are 168 rows (frequencies)
     # By 173 columns (time frames)
+    if GENERATE_TEST:
+        test = np.array(pd.read_csv("test.csv", header=None, nrows=1))
+        N_test = test.shape[0]
+        test = test[:, 1:-1]
+        tmp_test = np.zeros((N_test, 193))
+
+        for i in range(N_test):
+            f = extract_feature(test[i], SAMPLE_RATE, BINS_OCTAVE, NUM_BINS)
+            tmp_test[i] = np.array(f)
+
+        np.save("features-test-dhruv.npy", tmp_test)
+    else:
+        tmp_test = np.load("features-test-dhruv.npy")
+
     if GENERATE_FEATURES:
         train = np.array(pd.read_csv("train.csv", header=None, nrows=1))
-        test = np.array(pd.read_csv("test.csv", header=None, nrows=1))
 
         print "N:", N
         # train = signal[np.newaxis,:]
         print "Train shape", train.shape
         N_train = train.shape[0]
-        N_test = test.shape[0]
         # NUM_SAMPLES = train.shape[1] - 1
-
-        test = test[:, 1:-1]
 
         y_train = train[:, -1]
         y_train = y_train.reshape(N_train, 1)
 
         # remove first and last two elements to drop the mic
         X_train = train[:, 1:-2]
-
-        # JUST SOME FOURIER TRANSFORM PARAMETERS
-        BINS_OCTAVE = 12 * 2
-        N_OCTAVES = 7
-        NUM_BINS = BINS_OCTAVE * N_OCTAVES
 
         song = X_train[0]
         test_spec = mel_spec(song, SAMPLE_RATE, BINS_OCTAVE, NUM_BINS)
@@ -105,20 +116,12 @@ def main():
             f = extract_feature(X_train[i], SAMPLE_RATE, BINS_OCTAVE, NUM_BINS)
             tmp_train[i] = np.array(f)
 
-        tmp_test = np.zeros((N_test, 193))
-
-        for i in range(N_test):
-            f = extract_feature(test[i], SAMPLE_RATE, BINS_OCTAVE, NUM_BINS)
-            tmp_test[i] = np.array(f)
-
         np.save("features-train-dhruv.npy", tmp_train)
         np.save("y-train-features-dhruv.npy", y_train)
-        np.save("features-test-dhruv.npy", tmp_test)
 
     else:
         tmp_train = np.load("features-train-dhruv.npy")
         y_train = np.load("y-train-features-dhruv.npy")
-        tmp_test = np.load("features-test-dhruv.npy")
 
 
     X_train, X_valid, y_train, y_valid = train_test_split(
