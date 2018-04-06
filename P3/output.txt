@@ -1,47 +1,4 @@
-fitting
-(6261, 193)
-Fitting 3 folds for each of 9 candidates, totalling 27 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   2 out of  27 | elapsed:    1.2s remaining:   14.6s
-[Parallel(n_jobs=-1)]: Done   5 out of  27 | elapsed:    2.0s remaining:    8.6s
-[Parallel(n_jobs=-1)]: Done   8 out of  27 | elapsed:    2.8s remaining:    6.6s
-[Parallel(n_jobs=-1)]: Done  11 out of  27 | elapsed:    4.1s remaining:    6.0s
-[Parallel(n_jobs=-1)]: Done  14 out of  27 | elapsed:    4.8s remaining:    4.5s
-[Parallel(n_jobs=-1)]: Done  17 out of  27 | elapsed:    5.3s remaining:    3.1s
-[Parallel(n_jobs=-1)]: Done  20 out of  27 | elapsed:    6.4s remaining:    2.3s
-[Parallel(n_jobs=-1)]: Done  23 out of  27 | elapsed:    6.7s remaining:    1.2s
-[Parallel(n_jobs=-1)]: Done  27 out of  27 | elapsed:    7.0s finished
+TESTING VALUES FOR MAX_FEATURES
 [CV] max_features=0.6 ................................................
 [CV] ........... max_features=0.6, score=0.972740315638, total=   3.9s
 [CV] max_features=0.5 ................................................
@@ -88,67 +45,6 @@ Fitting 3 folds for each of 9 candidates, totalling 27 fits
 [CV] ........... max_features=0.4, score=0.979836773884, total=   2.7s
 [CV] max_features=1.0 ................................................
 [CV] ........... max_features=1.0, score=0.972740315638, total=   3.5s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-Random Forest Evaluation score: 0.96875
-  File "dhruv.py", line 139
-    rfr = GridSearchCV(rf,cv=8, param_grid, verbose=10, n_jobs=-1)
-SyntaxError: non-keyword arg after keyword arg
-  File "dhruv.py", line 57
-    Q_db
-       ^
-IndentationError: unindent does not match any outer indentation level
-fitting
-(6261, 193)
-Traceback (most recent call last):
-  File "dhruv.py", line 154, in <module>
-    main()
-  File "dhruv.py", line 139, in main
-    rfr = GridSearchCV(rf,param_grd,cv=8, verbose=10, n_jobs=-1)
-NameError: global name 'param_grd' is not defined
-fitting
-(6261, 193)
-Fitting 8 folds for each of 9 candidates, totalling 72 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   9 tasks      | elapsed:    2.9s
-[Parallel(n_jobs=-1)]: Done  18 tasks      | elapsed:    5.2s
-[Parallel(n_jobs=-1)]: Done  29 tasks      | elapsed:    7.8s
-[Parallel(n_jobs=-1)]: Done  40 tasks      | elapsed:   12.0s
-[Parallel(n_jobs=-1)]: Done  49 out of  72 | elapsed:   17.4s remaining:    8.2s
-[Parallel(n_jobs=-1)]: Done  57 out of  72 | elapsed:   21.2s remaining:    5.6s
-[Parallel(n_jobs=-1)]: Done  65 out of  72 | elapsed:   24.3s remaining:    2.6s
-[Parallel(n_jobs=-1)]: Done  72 out of  72 | elapsed:   24.7s finished
 [CV] max_features=0.3 ................................................
 [CV] ........... max_features=0.3, score=0.985879332478, total=   2.6s
 [CV] max_features=0.5 ................................................
@@ -283,55 +179,6 @@ Fitting 8 folds for each of 9 candidates, totalling 72 fits
 [CV] ........... max_features=0.8, score=0.991014120668, total=   6.6s
 [CV] max_features=1.0 ................................................
 [CV] ........... max_features=1.0, score=0.982028241335, total=   5.5s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-Random Forest Evaluation score: 1.0
-fitting
-(6261, 193)
-Fitting 8 folds for each of 20 candidates, totalling 160 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   9 tasks      | elapsed:    3.6s
-[Parallel(n_jobs=-1)]: Done  18 tasks      | elapsed:    4.3s
-[Parallel(n_jobs=-1)]: Done  29 tasks      | elapsed:    7.2s
-[Parallel(n_jobs=-1)]: Done  40 tasks      | elapsed:    9.5s
-[Parallel(n_jobs=-1)]: Done  53 tasks      | elapsed:   11.8s
-[Parallel(n_jobs=-1)]: Done  66 tasks      | elapsed:   14.9s
-[Parallel(n_jobs=-1)]: Done  81 tasks      | elapsed:   18.1s
-[Parallel(n_jobs=-1)]: Done  96 tasks      | elapsed:   22.1s
-[Parallel(n_jobs=-1)]: Done 113 tasks      | elapsed:   26.2s
-[Parallel(n_jobs=-1)]: Done 146 out of 160 | elapsed:   34.9s remaining:    3.3s
-[Parallel(n_jobs=-1)]: Done 160 out of 160 | elapsed:   36.6s finished
 [CV] max_features=0.31 ...............................................
 [CV] .......... max_features=0.31, score=0.984615384615, total=   2.8s
 [CV] max_features=0.33 ...............................................
@@ -632,52 +479,9 @@ Fitting 8 folds for each of 20 candidates, totalling 160 fits
 [CV] .......... max_features=0.48, score=0.984732824427, total=   3.7s
 [CV] max_features=0.49 ...............................................
 [CV] ........... max_features=0.49, score=0.97946084724, total=   2.3s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-Random Forest Evaluation score: 0.984375
-fitting
-(6261, 193)
-Fitting 8 folds for each of 4 candidates, totalling 32 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   5 out of  32 | elapsed:    1.7s remaining:    9.4s
-[Parallel(n_jobs=-1)]: Done   9 out of  32 | elapsed:    3.3s remaining:    8.4s
-[Parallel(n_jobs=-1)]: Done  13 out of  32 | elapsed:    3.9s remaining:    5.7s
-[Parallel(n_jobs=-1)]: Done  17 out of  32 | elapsed:    4.6s remaining:    4.0s
-[Parallel(n_jobs=-1)]: Done  21 out of  32 | elapsed:    5.7s remaining:    3.0s
-[Parallel(n_jobs=-1)]: Done  25 out of  32 | elapsed:    6.4s remaining:    1.8s
-[Parallel(n_jobs=-1)]: Done  29 out of  32 | elapsed:    6.6s remaining:    0.7s
-[Parallel(n_jobs=-1)]: Done  32 out of  32 | elapsed:    6.6s finished
+
+
+SETTING MAX_FEATURES TO 0.40, NOW TESTING VALUES FOR MAX_DEPTH
 [CV] max_depth=10 ....................................................
 [CV] ................ max_depth=10, score=0.98971722365, total=   3.5s
 [CV] max_depth=10 ....................................................
@@ -736,53 +540,6 @@ Fitting 8 folds for each of 4 candidates, totalling 32 fits
 [CV] .............. max_depth=200, score=0.989834815756, total=   2.9s
 [CV] max_depth=1000 ..................................................
 [CV] ............. max_depth=1000, score=0.980744544288, total=   2.2s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'max_depth': 200}
-Random Forest Evaluation score: 0.984375
-fitting
-(6261, 193)
-Fitting 8 folds for each of 9 candidates, totalling 72 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   9 tasks      | elapsed:    4.2s
-[Parallel(n_jobs=-1)]: Done  18 tasks      | elapsed:    5.7s
-[Parallel(n_jobs=-1)]: Done  29 tasks      | elapsed:    8.6s
-[Parallel(n_jobs=-1)]: Done  40 tasks      | elapsed:   12.0s
-[Parallel(n_jobs=-1)]: Done  49 out of  72 | elapsed:   13.1s remaining:    6.2s
-[Parallel(n_jobs=-1)]: Done  57 out of  72 | elapsed:   15.5s remaining:    4.1s
-[Parallel(n_jobs=-1)]: Done  65 out of  72 | elapsed:   16.7s remaining:    1.8s
-[Parallel(n_jobs=-1)]: Done  72 out of  72 | elapsed:   17.1s finished
 [CV] max_depth=300 ...................................................
 [CV] .............. max_depth=300, score=0.988520408163, total=   3.6s
 [CV] max_depth=400 ...................................................
@@ -927,54 +684,6 @@ Fitting 8 folds for each of 9 candidates, totalling 72 fits
 [CV] ............... max_depth=800, score=0.97695262484, total=   3.4s
 [CV] max_depth=1000 ..................................................
 [CV] .............. max_depth=1000, score=0.98847631242, total=   2.7s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'max_depth': 1000}
-Random Forest Evaluation score: 0.984375
-fitting
-(6261, 193)
-Fitting 8 folds for each of 3 candidates, totalling 24 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   1 tasks      | elapsed:    2.9s
-[Parallel(n_jobs=-1)]: Done   2 out of  24 | elapsed:    3.2s remaining:   35.1s
-[Parallel(n_jobs=-1)]: Done   5 out of  24 | elapsed:    4.2s remaining:   15.8s
-[Parallel(n_jobs=-1)]: Done   8 out of  24 | elapsed:    4.3s remaining:    8.6s
-[Parallel(n_jobs=-1)]: Done  11 out of  24 | elapsed:    4.4s remaining:    5.2s
-[Parallel(n_jobs=-1)]: Done  14 out of  24 | elapsed:    4.6s remaining:    3.3s
-[Parallel(n_jobs=-1)]: Done  17 out of  24 | elapsed:    4.9s remaining:    2.0s
-[Parallel(n_jobs=-1)]: Done  20 out of  24 | elapsed:    5.9s remaining:    1.2s
-[Parallel(n_jobs=-1)]: Done  24 out of  24 | elapsed:    6.1s finished
 [CV] max_depth=1000 ..................................................
 [CV] ............. max_depth=1000, score=0.985987261146, total=   3.6s
 [CV] max_depth=None ..................................................
@@ -1019,54 +728,6 @@ Fitting 8 folds for each of 3 candidates, totalling 24 fits
 [CV] ............. max_depth=None, score=0.984674329502, total=   3.8s
 [CV] max_depth=2000 ..................................................
 [CV] ............. max_depth=2000, score=0.982097186701, total=   1.7s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'max_depth': 2000}
-Random Forest Evaluation score: 0.953125
-fitting
-(6261, 193)
-Fitting 8 folds for each of 3 candidates, totalling 24 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   1 tasks      | elapsed:    1.8s
-[Parallel(n_jobs=-1)]: Done   2 out of  24 | elapsed:    2.5s remaining:   28.0s
-[Parallel(n_jobs=-1)]: Done   5 out of  24 | elapsed:    3.7s remaining:   14.2s
-[Parallel(n_jobs=-1)]: Done   8 out of  24 | elapsed:    4.1s remaining:    8.3s
-[Parallel(n_jobs=-1)]: Done  11 out of  24 | elapsed:    4.5s remaining:    5.3s
-[Parallel(n_jobs=-1)]: Done  14 out of  24 | elapsed:    4.6s remaining:    3.3s
-[Parallel(n_jobs=-1)]: Done  17 out of  24 | elapsed:    5.1s remaining:    2.1s
-[Parallel(n_jobs=-1)]: Done  20 out of  24 | elapsed:    5.8s remaining:    1.2s
-[Parallel(n_jobs=-1)]: Done  24 out of  24 | elapsed:    6.0s finished
 [CV] max_depth=1000 ..................................................
 [CV] ............. max_depth=1000, score=0.982188295165, total=   3.6s
 [CV] max_depth=1000 ..................................................
@@ -1111,53 +772,6 @@ Fitting 8 folds for each of 3 candidates, totalling 24 fits
 [CV] ............. max_depth=None, score=0.984575835476, total=   3.5s
 [CV] max_depth=2000 ..................................................
 [CV] ............. max_depth=2000, score=0.979434447301, total=   1.7s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'max_depth': 2000}
-Random Forest Evaluation score: 0.984375
-fitting
-(6261, 193)
-Fitting 12 folds for each of 5 candidates, totalling 60 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   9 tasks      | elapsed:    4.4s
-[Parallel(n_jobs=-1)]: Done  18 tasks      | elapsed:    6.2s
-[Parallel(n_jobs=-1)]: Done  29 tasks      | elapsed:    9.2s
-[Parallel(n_jobs=-1)]: Done  36 out of  60 | elapsed:   11.0s remaining:    7.3s
-[Parallel(n_jobs=-1)]: Done  43 out of  60 | elapsed:   13.1s remaining:    5.2s
-[Parallel(n_jobs=-1)]: Done  50 out of  60 | elapsed:   14.0s remaining:    2.8s
-[Parallel(n_jobs=-1)]: Done  57 out of  60 | elapsed:   15.0s remaining:    0.8s
-[Parallel(n_jobs=-1)]: Done  60 out of  60 | elapsed:   15.1s finished
 [CV] max_depth=1000 ..................................................
 [CV] ............. max_depth=1000, score=0.994263862333, total=   3.6s
 [CV] max_depth=2000 ..................................................
@@ -1268,53 +882,6 @@ Fitting 12 folds for each of 5 candidates, totalling 60 fits
 [CV] ............. max_depth=3000, score=0.982725527831, total=   3.5s
 [CV] max_depth=4000 ..................................................
 [CV] ............. max_depth=4000, score=0.974903474903, total=   1.8s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'max_depth': 1000}
-Random Forest Evaluation score: 0.984375
-fitting
-(6261, 193)
-Fitting 12 folds for each of 5 candidates, totalling 60 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   9 tasks      | elapsed:    4.7s
-[Parallel(n_jobs=-1)]: Done  18 tasks      | elapsed:    6.5s
-[Parallel(n_jobs=-1)]: Done  29 tasks      | elapsed:    9.5s
-[Parallel(n_jobs=-1)]: Done  36 out of  60 | elapsed:   11.3s remaining:    7.5s
-[Parallel(n_jobs=-1)]: Done  43 out of  60 | elapsed:   13.0s remaining:    5.1s
-[Parallel(n_jobs=-1)]: Done  50 out of  60 | elapsed:   14.3s remaining:    2.9s
-[Parallel(n_jobs=-1)]: Done  57 out of  60 | elapsed:   15.1s remaining:    0.8s
-[Parallel(n_jobs=-1)]: Done  60 out of  60 | elapsed:   15.3s finished
 [CV] max_depth=1000 ..................................................
 [CV] ............. max_depth=1000, score=0.986666666667, total=   4.1s
 [CV] max_depth=2000 ..................................................
@@ -1419,62 +986,10 @@ Fitting 12 folds for each of 5 candidates, totalling 60 fits
 [CV] ............. max_depth=3000, score=0.982725527831, total=   3.8s
 [CV] max_depth=4000 ..................................................
 [CV] ............. max_depth=4000, score=0.984615384615, total=   2.1s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'max_depth': 3000}
-Random Forest Evaluation score: 0.984375
-fitting
-(6261, 193)
-Traceback (most recent call last):
-  File "dhruv.py", line 156, in <module>
-    main()
-  File "dhruv.py", line 133, in main
-    criterion: ["gini", "entropy"]
-NameError: global name 'criterion' is not defined
-fitting
-(6261, 193)
-Fitting 12 folds for each of 2 candidates, totalling 24 fits
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_validation.py:458: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  estimator.fit(X_train, y_train, **fit_params)
-[Parallel(n_jobs=-1)]: Done   1 tasks      | elapsed:    2.6s
-[Parallel(n_jobs=-1)]: Done   2 out of  24 | elapsed:    4.0s remaining:   43.9s
-[Parallel(n_jobs=-1)]: Done   5 out of  24 | elapsed:    4.4s remaining:   16.8s
-[Parallel(n_jobs=-1)]: Done   8 out of  24 | elapsed:    4.7s remaining:    9.4s
-[Parallel(n_jobs=-1)]: Done  11 out of  24 | elapsed:    5.0s remaining:    5.9s
-[Parallel(n_jobs=-1)]: Done  14 out of  24 | elapsed:   10.7s remaining:    7.7s
-[Parallel(n_jobs=-1)]: Done  17 out of  24 | elapsed:   11.6s remaining:    4.8s
-[Parallel(n_jobs=-1)]: Done  20 out of  24 | elapsed:   12.5s remaining:    2.5s
-[Parallel(n_jobs=-1)]: Done  24 out of  24 | elapsed:   12.6s finished
+
+Looks like MAX_DEPTH is helpful to a random extent lol, so not a useful parameter.
+SETTING MAX_DEPTH TO 1000, testing the CRITERION PARAMETER
+
 [CV] criterion=gini ..................................................
 [CV] .............. criterion=gini, score=0.97880539499, total=   4.0s
 [CV] criterion=gini ..................................................
@@ -1519,7 +1034,5 @@ Fitting 12 folds for each of 2 candidates, totalling 24 fits
 [CV] ............. criterion=gini, score=0.986692015209, total=   3.8s
 [CV] criterion=entropy ...............................................
 [CV] .......... criterion=entropy, score=0.986538461538, total=   8.2s
-/usr/local/lib/python2.7/dist-packages/sklearn/model_selection/_search.py:739: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.best_estimator_.fit(X, y, **fit_params)
-{'criterion': 'gini'}
-Random Forest Evaluation score: 0.96875
+
+CRITERION ALSO DOESN'T SEEM TO MATTER!
