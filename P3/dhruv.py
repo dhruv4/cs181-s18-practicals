@@ -123,7 +123,6 @@ def main():
         tmp_train = np.load("features-train-dhruv.npy")
         y_train = np.load("y-train-features-dhruv.npy")
 
-
     X_train, X_valid, y_train, y_valid = train_test_split(
         tmp_train, y_train, test_size=0.01)
 
@@ -136,7 +135,7 @@ def main():
         "max_features": [x / 100.0 for x in range(20, 101, 10)]
     }
 
-    rf = RandomForestClassifier()
+    rf = RandomForestClassifier(n_jobs=-1)
     rfr = GridSearchCV(rf, param_grid, verbose=10, n_jobs=-1)
     rfr.fit(X_train, y_train)
     valid_pred = rfr.predict(X_valid)
