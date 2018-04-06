@@ -78,7 +78,7 @@ def main():
     # This means that the spectrograms are 168 rows (frequencies)
     # By 173 columns (time frames)
     if GENERATE_TEST:
-        test = np.array(pd.read_csv("test.csv", header=None, nrows=1))
+        test = np.array(pd.read_csv("test.csv", header=None, nrows=N))
         N_test = test.shape[0]
         test = test[:, 1:-1]
         tmp_test = np.zeros((N_test, 193))
@@ -92,7 +92,7 @@ def main():
         tmp_test = np.load("features-test-dhruv.npy")
 
     if GENERATE_FEATURES:
-        train = np.array(pd.read_csv("train.csv", header=None, nrows=1))
+        train = np.array(pd.read_csv("train.csv", header=None, nrows=N))
 
         print "N:", N
         # train = signal[np.newaxis,:]
