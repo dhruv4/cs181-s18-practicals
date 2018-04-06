@@ -70,7 +70,7 @@ def main():
     N_OCTAVES = 7
     NUM_BINS = BINS_OCTAVE * N_OCTAVES
 
-    GENERATE_FEATURES = True
+    GENERATE_FEATURES = False
     GENERATE_TEST = False
     N = None
 
@@ -130,21 +130,26 @@ def main():
     print X_train.shape
 
     param_grid = {
-        # "max_depth": [3, 10, 200, 1000],
+	"criterion": ["gini", "entropy"]
+        # "max_depth": [None, 1000, 2000, 3000, 4000],
         # "learning_rate": [x / 100.0 for x in range(1, 100, 10)],
-        "max_features": [x / 100.0 for x in range(20, 101, 10)]
+        #"max_features": [x / 100.0 for x in range(30, 50, 1)]
     }
 
-    rf = RandomForestClassifier(n_jobs=-1)
-    rfr = GridSearchCV(rf, param_grid, verbose=10, n_jobs=-1)
+    rf = RandomForestClassifier(n_jobs=-1, max_depth = 1000, max_features=0.40)
+    rfr = GridSearchCV(rf,param_grid,cv=12, verbose=10, n_jobs=-1)
     rfr.fit(X_train, y_train)
     valid_pred = rfr.predict(X_valid)
+    from sklearn.externals import joblib
+    import datetime
+    joblib.dump(rfr, "rfr-model-%s" % str(datetime.datetime.now()))
+    print rfr.best_params_
 
     print "Random Forest Evaluation score:", eval(valid_pred, y_valid)
 
     rfr_test_pred = rfr.predict(tmp_test)
 
-    write_to_file("rfr_preds.csv", rfr_test_pred)
+    write_to_file("rfr_preds-%s.csv" % str(datetime.datetime.now()), rfr_test_pred)
 
 
 if __name__ == '__main__':
