@@ -99,10 +99,14 @@ class SwingyMonkey:
                       'bot': <screen height of bottom of monkey> }}'''                      
 
         # Find the next closest tree.
+        next_tree = None
         for tree in self.trees:
-            if tree['x']+290 > self.monkey_left:
+            if tree['x']+290 >= self.monkey_left:
                 next_tree = tree.copy()
                 break
+
+        if not next_tree:
+            next_tree = self.trees[0].copy()
 
         # Construct the state dictionary to return.
         return { 'score': self.score,
