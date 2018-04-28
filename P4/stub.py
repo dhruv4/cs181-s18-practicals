@@ -126,36 +126,89 @@ class QLearner(object):
         #     # Return closest Q entry if tree center is within 50
         #    return 0
 
-        if s[0] in self.q:
-            # Above tree center in Q
-            if s[1] in self.q[s[0]]:
-                # Dist to ground in Q
-                if s[2] in self.q[s[2]]:
-                    # Dist to tree in Q
-                    if s[3] in self.q[s[3]]:
-                        # Motion in Q
-                    else:
-                        # Motion not in Q 
-                else:
-                    # Dist to tree not in Q
-                    pass
-            else:
-                # Dist to ground not in Q
-                pass
+        # Action
+        closest_a = None
+        if a in self.q:
+            closest_a = a
         else:
-            # Above tree center not in Q
-        return self.q[(s,a)]
+            ## Not in Q
+            return 0
+
+
+        # Above tree center
+        closest_above_tree_center = None
+        if s[0] in self.q[a]:
+            closest_above_tree_center = s[0]
+        else:
+            ## Not in Q
+            if (not s[0]) in self.q[a]:
+                closest_above_tree_center = not s[0]
+            else:
+                return 0
+
+        # Dist to ground
+        closest_dist_to_ground = None
+        if s[1] in self.q[a][closest_above_tree_center]:
+            closest_dist_to_ground = s[1]
+        else:
+            ## Not in Q
+            ## Find closest dist to ground
+            for dist, q_val in self.q[a][closest_above_tree_center].items():
+                if closest_dist_to_ground is None or np.abs(closest_dist_to_ground - s[2]) > np.abs(int(dist) - s[3]):
+                    closest_dist_to_ground = int(dist)
+            if closest_dist_to_ground is None:
+                return 0
+
+        # Dist to tree
+        closest_dist_to_tree = None
+        if s[2] in self.q[a][closest_above_tree_center][closest_dist_to_ground]:
+            closest_dist_to_tree = s[2]
+        else:
+            ## Not in Q
+            ## Find closest dist to tree
+            for dist, q_val in self.q[a][closest_above_tree_center][closest_dist_to_ground].items():
+                if closest_dist_to_tree is None or np.abs(closest_dist_to_tree - s[2]) > np.abs(int(dist) - s[3]):
+                    closest_dist_to_tree = int(dist)
+            if closest_dist_to_tree is None:
+                return 0
+
+        # Motion
+        closest_motion = None
+        if s[3] in self.q[a][closest_above_tree_center][closest_dist_to_ground][closest_dist_to_tree]:
+            closest_motion = s[3]
+        else:
+            ## Not in Q
+            # Find closest motion
+            for motion, q_val in self.q[a][closest_above_tree_center][closest_dist_to_ground][closest_dist_to_tree].items():
+                if closest_motion is None or np.abs(closest_motion - s[3]) > np.abs(int(motion) - s[3]):
+                    closest_motion = int(motion)
+            if closest_motion is None:
+                return 0
+        
+        return self.q[a][closest_above_tree_center][closest_dist_to_ground][closest_dist_to_tree][closest_motion]
+
+
+
 
     def q_update(self, s, a, r, s_prime):
-        # If we haven't seen this (s,a) pair before, add it to Q
-        if (s,a) not in self.q:
-            self.q[(s,a)] = 0
-            print("New state ("+str(s)+", "+str(a)+") = "+str(self.q[(s,a)]))
-        else:
-            print("Already seen ("+str(s)+", "+str(a)+") = "+str(self.q[(s,a)]))
-        # Q-learning algorithm
-        max_q = np.max([self.q_lookup(s_prime, 0), self.q_lookup(s_prime, 1)])
-        self.q[s[0]][s[1]][s[2]][s[3]][a] = (1 - self.LEARNING_RATE) * self.q_lookup(s,a) + self.LEARNING_RATE * ( r + self.DISCOUNT * max_q)
+        try:
+            print("Already seen ("+str(s)+", "+str(a)+") = "+str(self.q[a][s[0]][s[1]][s[2]][s[3]]))
+            # Q-learning algorithm
+            max_q = np.max([self.q_lookup(s_prime, 0), self.q_lookup(s_prime, 1)])
+            self.q[a][s[0]][s[1]][s[2]][s[3]] = (1 - self.LEARNING_RATE) * self.q_lookup(s,a) + self.LEARNING_RATE * ( r + self.DISCOUNT * max_q)
+        except:
+            # Haven't seen this state/action pair before in Q
+            if a not in self.q:
+                self.q[a] = {}
+            if s[0] not in self.q[a]:
+                self.q[a][s[0]] = {}
+            if s[1] not in self.q[a][s[0]]:
+                self.q[a][s[0]][s[1]] = {}
+            if s[2] not in self.q[a][s[0]][s[1]]:
+                self.q[a][s[0]][s[1]][s[2]] = {}
+            if s[3] not in self.q[a][s[0]][s[1]][s[2]]:
+                self.q[a][s[0]][s[1]][s[2]][s[3]] = 0
+            print("New state ("+str(s)+", "+str(a)+") = "+str(self.q[a][s[0]][s[1]][s[2]][s[3]]))
 
     def action_callback(self, state):
         '''
