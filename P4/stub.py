@@ -42,15 +42,160 @@ class Random(object):
 
 
 class QLearner(object):
-    '''
-    This agent jumps randomly.
-    '''
+
+    def __init__(self):
+        # Constants - Same each game
+        self.LEARNING_RATE = 0.8
+        self.DISCOUNT = 1
+        self.EPSILON = 0.1
+        self.A = [0, 1]
+        self.SCREEN_WIDTH  = 600
+        self.SCREEN_HEIGHT = 400
+        # Constant - Randomly initialized at start of each game
+        self.GRAVITY = None
+        self.PROP_REWARD_STATES_LENGTH = 5
+        # Q-learning
+        self.last_state_full = None
+        self.last_state_discrete  = None
+        self.last_action = None
+        self.last_reward = None
+        self.q = {}
+        self.prop_reward_states = [] # FIFO stack of (s,a) pairs to propagate reward back to
+
+    def reset(self):
+        self.last_state_full = None
+        self.last_state_discrete  = None
+        self.last_action = None
+        self.last_reward = None
+        self.GRAVITY = None
+
+    def greedy_epsilon(self, potential_actions):
+        num = np.random.uniform(0, 1)
+        if num < self.EPSILON:
+            # Pick random action with probability self.EPSILON
+            return np.random.choice(range(len(potential_actions)))
+        return np.argmax(potential_actions)
+
+    def discrete_state(self, state):
+        tree_dist = state['tree']['dist']
+        tree_top = state['tree']['top']
+        tree_bot = state['tree']['bot']
+        monkey_vel = state['monkey']['vel']
+        monkey_top = state['monkey']['top']
+        monkey_bot = state['monkey']['bot']
+
+        #
+        # Feature extraction
+        #
+        above_tree_dist = monkey_top - tree_top
+
+        #
+        # Transformations
+        #
+
+        # Bin all continuous pixel ranges
+        dist_to_tree_trans = np.floor_divide(tree_dist, 50)
+        if dist_to_tree_trans < 0:
+            dist_to_tree_trans = 0
+        dist_above_tree_trans = np.floor_divide(above_tree_dist, 50)
+        # Take gravity effects on monkey velocity into account
+        vel_trans = monkey_vel - (self.GRAVITY if self.GRAVITY is not None else 0)
+        # Bin velocity
+        motion_trans = int(vel_trans/2)
+        new_state = (dist_to_tree_trans, dist_above_tree_trans, motion_trans)
+        return new_state
+
+    def calc_gravity(self, current_state, last_state):
+        last_monkey_vel = last_state['monkey']['vel']
+        current_monkey_vel = current_state['monkey']['vel']
+        self.GRAVITY = last_monkey_vel - current_monkey_vel
+
+    def q_lookup(self, s, a):
+        if (s,a) not in self.q:
+            return 0
+        else:
+            return self.q[(s,a)]
+
+    def q_update(self, s, a, r, s_prime):
+        print("&&&&&&&&&&.   "+str(r))
+
+        q_idx = (s,a)
+        self.prop_reward_states.insert(0,q_idx)
+
+        if q_idx not in self.q:
+            self.q[q_idx] = 0
+            print("New state ("+str(s)+", "+str(a)+") = "+str(self.q[q_idx]))
+        else:
+            print("Already seen ("+str(s)+", "+str(a)+") = "+str(self.q[q_idx]))
+
+        # Q-learning algorithm
+        if r < 0:
+            print(": R < 0")
+            ## If non-zero reward, propagate back to all states in self.prop_reward_states
+            _s_prime = s_prime
+            ## Work backwards to update
+            ### If we have (s1,a1) -> (s2,a2) -> (s3,a3) -> (s4,a4)
+            ### Then set Q(s3,a3) based on (s4,0/1), Q(s2,a2) based on Q(s3,0/1), etc.
+            for (_s,_a) in self.prop_reward_states:
+                max_q = np.max([self.q_lookup(_s_prime, 0), self.q_lookup(_s_prime, 1)])
+                self.q[(_s,_a)] = (1 - self.LEARNING_RATE) * self.q_lookup(_s,_a) + self.LEARNING_RATE * ( r * 100 + self.DISCOUNT * max_q)
+                _s_prime = _s
+            self.prop_reward_states = []
+        else:
+            ## No penalty, so give slight reward
+            max_q = np.max([self.q_lookup(s_prime, 0), self.q_lookup(s_prime, 1)])
+            self.q[(s,a)] = (1 - self.LEARNING_RATE) * self.q_lookup(s,a) + self.LEARNING_RATE * ( 1 + self.DISCOUNT * max_q)
+            if len(self.prop_reward_states) > self.PROP_REWARD_STATES_LENGTH:
+                del self.prop_reward_states[-1]
+
+    def action_callback(self, state):
+        '''
+        Implement this function to learn things and take actions.
+        Return 0 if you don't want to jump and 1 if you do.
+        '''
+        # You might do some learning here
+        # based on the current state and the last state.
+        # You'll need to select an action and return it.
+        # Return 0 to swing and 1 to jump.
+
+        # At state s (self.last_state), we took action a (self.last_action), got reward r (self.last_reward), and now are in state s' and need to decide a'
+        s_prime = self.discrete_state(state)
+
+        if self.last_action is None:
+            # Very first action, default to not doing anything to measure gravity
+            a_prime = 0
+        else:
+            ## Calculate gravity based on monkey position
+            if self.GRAVITY is None:
+                self.calc_gravity(state, self.last_state_full)
+            ## This new action a' will not be the very first action we take
+            ## Thus, we can safely check previous state/action (s/a)
+            a = self.last_action
+            s = self.last_state_discrete
+            r = self.last_reward
+            self.q_update(s, a, r, s_prime)
+            a_prime = 0 if self.q_lookup(s_prime, 0) >= self.q_lookup(s_prime, 1) else 1
+            print("(s,a,r,s',a'): "+str(s)+","+str(a)+","+str(r)+","+str(s_prime)+","+str(a_prime))
+            print(str(self.q_lookup(s_prime, 0))+" v. "+str(self.q_lookup(s_prime, 1)))
+
+        # Save current s_prime/a_prime as last s/a
+        self.last_action = a_prime
+        self.last_state_discrete  = s_prime
+        self.last_state_full = state
+        return a_prime
+
+    def reward_callback(self, reward):
+        '''This gets called so you can see what reward you get.'''
+        self.last_reward = reward
+
+
+class OldQLearner(object):
 
     def __init__(self):
         # Constants - Same each game
         self.LEARNING_RATE = 0.8
         self.DISCOUNT = 0.99
-        self.EPSILON = 0.05
+        self.EPSILON = 0.1
         self.A = [0, 1]
         self.SCREEN_WIDTH  = 600
         self.SCREEN_HEIGHT = 400
@@ -103,6 +248,8 @@ class QLearner(object):
 
         # Bin all continuous pixel ranges into groups of 50 (e.g. 400-449 -> 4)
         dist_to_tree_center_trans = np.floor_divide(dist_to_tree_center, 50)
+        if dist_to_tree_center_trans < 0:
+            dist_to_tree_center_trans = 0
         dist_to_ground_trans = np.floor_divide(dist_to_ground, 50)
         dist_to_tree = np.floor_divide(tree_dist, 50)
         # Take gravity effects on monkey velocity into account
@@ -186,9 +333,6 @@ class QLearner(object):
                 return 0
         
         return self.q[a][closest_above_tree_center][closest_dist_to_ground][closest_dist_to_tree][closest_motion]
-
-
-
 
     def q_update(self, s, a, r, s_prime):
         try:

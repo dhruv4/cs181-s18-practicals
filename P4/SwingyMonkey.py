@@ -6,7 +6,7 @@ import numpy.random as npr
 class SwingyMonkey:
 
     def __init__(self, sound=True, text=None, action_callback=None, 
-                 reward_callback=None, tick_length=100):
+                 reward_callback=None, tick_length=1000):
         """Constructor for the SwingyMonkey class.
 
         Possible Keyword Arguments:
@@ -109,6 +109,7 @@ class SwingyMonkey:
             next_tree = self.trees[0].copy()
 
         # Construct the state dictionary to return.
+
         return { 'score': self.score,
                  'tree': { 'dist': next_tree['x']+215-self.monkey_right,
                            'top': self.screen_height-next_tree['y'],
@@ -252,7 +253,7 @@ class SwingyMonkey:
         
         # Wait just a bit.
         pg.time.delay(self.tick_length)
-
+        print("HI")
         # Move things.
         self.hook -= self.horz_speed
         self.iter -= self.horz_speed
