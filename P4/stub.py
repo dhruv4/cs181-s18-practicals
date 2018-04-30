@@ -71,8 +71,10 @@ class QLearner(object):
 
     def greedy_epsilon(self, potential_actions):
         num = np.random.uniform(0, 1)
+        print ("num", num)
         if num < self.EPSILON:
             # Pick random action with probability self.EPSILON
+            print ("pot act", potential_actions)
             return np.random.choice(range(len(potential_actions)))
         return np.argmax(potential_actions)
 
@@ -194,7 +196,7 @@ class OldQLearner(object):
     def __init__(self):
         # Constants - Same each game
         self.LEARNING_RATE = 0.8
-        self.DISCOUNT = 0.99
+        self.DISCOUNT = 0.90
         self.EPSILON = 0.1
         self.A = [0, 1]
         self.SCREEN_WIDTH  = 600
@@ -218,8 +220,10 @@ class OldQLearner(object):
 
     def greedy_epsilon(self, potential_actions):
         num = np.random.uniform(0, 1)
+        print ("num", num)
         if num < self.EPSILON:
             # Pick random action with probability self.EPSILON
+            print ("pot act", potential_actions)
             return np.random.choice(range(len(potential_actions)))
         return np.argmax(potential_actions)
 
@@ -235,9 +239,13 @@ class OldQLearner(object):
         # Feature extraction
         #
         tree_center = (tree_top - tree_bot)/2 + tree_bot
-        dist_to_tree_center = np.sqrt((tree_dist)**2 + (tree_center - monkey_top)**2)
-        above_tree_center = monkey_top > tree_center
-        dist_to_ground = monkey_top
+        monkey_center = (monkey_top - monkey_bot)/2 + monkey_bot
+
+        dist_to_tree_center = np.sqrt((tree_dist)**2 + (tree_center - monkey_center)**2)
+        above_tree_center = (monkey_center > tree_center)
+        # above_tree_center = (monkey_top < tree_top) and (monkey_bot > tree_bot)
+        # above_tree_center = True
+        dist_to_ground = monkey_center
         # dist_to_tree_top = np.sqrt(tree_dist**2 + (tree_top - monkey_top)**2)
         # dist_to_tree_bot = np.sqrt(tree_dist**2 + (tree_bot - monkey_bot)**2)
         # dist_to_tree = np.array([dist_to_tree_bot, dist_to_tree_top])
@@ -247,11 +255,11 @@ class OldQLearner(object):
         #
 
         # Bin all continuous pixel ranges into groups of 50 (e.g. 400-449 -> 4)
-        dist_to_tree_center_trans = np.floor_divide(dist_to_tree_center, 50)
+        dist_to_tree_center_trans = np.floor_divide(dist_to_tree_center, 25)
         if dist_to_tree_center_trans < 0:
             dist_to_tree_center_trans = 0
-        dist_to_ground_trans = np.floor_divide(dist_to_ground, 50)
-        dist_to_tree = np.floor_divide(tree_dist, 50)
+        dist_to_ground_trans = np.floor_divide(dist_to_ground, 25)
+        dist_to_tree = np.floor_divide(tree_dist, 25)
         # Take gravity effects on monkey velocity into account
         vel_trans = monkey_vel - (self.gravity if self.gravity is not None else 0)
         # Bin velocity into groups of 10
@@ -338,6 +346,7 @@ class OldQLearner(object):
         try:
             print("Already seen ("+str(s)+", "+str(a)+") = "+str(self.q[a][s[0]][s[1]][s[2]][s[3]]))
             # Q-learning algorithm
+
             max_q = np.max([self.q_lookup(s_prime, 0), self.q_lookup(s_prime, 1)])
             self.q[a][s[0]][s[1]][s[2]][s[3]] = (1 - self.LEARNING_RATE) * self.q_lookup(s,a) + self.LEARNING_RATE * ( r + self.DISCOUNT * max_q)
         except:
@@ -363,6 +372,8 @@ class OldQLearner(object):
         # based on the current state and the last state.
         # You'll need to select an action and return it.
         # Return 0 to swing and 1 to jump.
+        print("action call", state)
+
 
         # At state s (self.last_state), we took action a (self.last_action), got reward r (self.last_reward), and now are in state s' and need to decide a'
         s_prime = self.discrete_state(state)
@@ -370,6 +381,7 @@ class OldQLearner(object):
         if self.last_action is None:
             # Very first action, default to not doing anything to measure gravity
             a_prime = 0
+
         else:
             ## Calculate gravity based on monkey position
             if self.gravity is None:
@@ -380,12 +392,17 @@ class OldQLearner(object):
             s = self.last_state_discrete
             r = self.last_reward
             self.q_update(s, a, r, s_prime)
-            a_prime = np.argmax([self.q_lookup(s_prime, 0), self.q_lookup(s_prime, 1)])
+
+            swing = self.q_lookup(s_prime, 0)
+            jump = self.q_lookup(s_prime, 1)
+
+            a_prime = np.argmax([swing, jump])
+
             print("(s,a,r,s',a'): "+str(s)+","+str(a)+","+str(r)+","+str(s_prime)+","+str(a_prime))
             print(str(self.q_lookup(s_prime, 0))+" v. "+str(self.q_lookup(s_prime, 1)))
         
             ## Get new policy from Q
-            a_prime = self.greedy_epsilon([self.q_lookup(s_prime, 0), self.q_lookup(s_prime, 1)])
+            a_prime = self.greedy_epsilon([swing, jump])
 
         # Save current s_prime/a_prime as last s/a
         self.last_action = a_prime
@@ -396,6 +413,109 @@ class OldQLearner(object):
     def reward_callback(self, reward):
         '''This gets called so you can see what reward you get.'''
         self.last_reward = reward
+
+class DhruvQLearner(object):
+
+    def __init__(self):
+        # Constants - Same each game
+        self.BINS = 50
+        self.VBINS = 5
+
+        self.DISCOUNT = 0.90
+        self.EPSILON = 0.1
+        self.SCREEN_WIDTH  = 600
+        self.SCREEN_HEIGHT = 400
+        # self.gravity = None
+
+        self.Q = np.zeros((2, int(self.SCREEN_WIDTH/self.BINS) + 1, int(self.SCREEN_HEIGHT/self.BINS) + 1, self.VBINS))
+        self.k = np.zeros((2, int(self.SCREEN_WIDTH/self.BINS) + 1, int(self.SCREEN_HEIGHT/self.BINS) + 1, self.VBINS))
+
+        self.iters = 0
+        self.mem = [0, 0]
+        self.epoch = 1
+
+        self.last_state  = None
+        self.last_action = None
+        self.last_reward = None
+
+    def reset(self):
+        self.last_state = None
+        self.last_action = None
+        self.last_reward = None
+        self.epoch += 1
+
+    def action_callback(self, state):
+        '''
+        Implement this function to learn things and take actions.
+        Return 0 if you don't want to jump and 1 if you do.
+        '''
+        # You might do some learning here
+        # based on the current state and the last state.
+        # You'll need to select an action and return it.
+        # Return 0 to swing and 1 to jump.
+
+        self.iters += 1
+
+        tree_dist = int(state['tree']['dist']/self.BINS)
+
+        if tree_dist < 0:
+            tree_dist = 0
+
+        tree_bot = int((state['tree']['top'] - state['monkey']['top'] + 0)/self.BINS)
+
+        monkey_vel = int((state['monkey']['vel'])/20)
+
+        if np.abs(monkey_vel) > 2:
+            monkey_vel = np.sign(monkey_vel)*2
+        if npr.rand() < 0.5:
+            aprime = 0
+        else:
+            aprime = 1
+
+        if not self.last_action == None:
+
+            last_tree_dist = int(self.last_state['tree']['dist'] / self.BINS)
+            last_tree_bot = int((self.last_state['tree']['top'] - self.last_state['monkey']['top']) / self.BINS)
+            last_monkey_vel = int(self.last_state['monkey']['vel'] / 20)
+
+            if np.abs(last_monkey_vel) > 2:
+                last_monkey_vel = np.sign(last_monkey_vel)*2
+
+            qmax = np.max(self.Q[:,tree_dist, tree_bot, monkey_vel])
+
+            if self.Q[1][tree_dist, tree_bot, monkey_vel] > self.Q[0][tree_dist, tree_bot, monkey_vel]:
+                aprime = 1
+            else: 
+                aprime = 0
+
+            if self.k[aprime][tree_dist, tree_bot, monkey_vel] > 0:
+                eps = self.EPSILON/self.k[aprime][tree_dist, tree_bot, monkey_vel] # reduce epsilon if you have a high Q reward
+            else:
+                eps = self.EPSILON
+
+            r = npr.rand()
+
+            if r < eps:
+                if r < 0.5:
+                    aprime = 0
+                else:
+                    aprime = 1
+
+            alph = 1/self.k[self.last_action][last_tree_dist, last_tree_bot, last_monkey_vel] # dynamically set learning rate
+            self.Q[self.last_action][last_tree_dist, last_tree_bot, last_monkey_vel] += alph*(self.last_reward + self.DISCOUNT * qmax - self.Q[self.last_action][last_tree_dist, last_tree_bot, last_monkey_vel])
+
+        self.mem[0] = state['monkey']['top']
+
+        self.last_action = aprime
+        self.last_state  = state
+        self.k[aprime][tree_dist, tree_bot, monkey_vel] += 1 # ERROR HERE
+        return aprime
+
+    def reward_callback(self, reward):
+        '''This gets called so you can see what reward you get.'''
+
+        self.last_reward = reward
+
 
 def run_games(learner, hist, iters = 100, t_len = 100):
 
@@ -418,7 +538,7 @@ def run_games(learner, hist, iters = 100, t_len = 100):
         hist.append(swing.score)
         # Reset the state of the learner.
         print("---- Q ----")
-        print(learner.q)
+        print(learner.Q)
         print("\n\n")
         print("---- NEW GAME ----")
         learner.reset()
@@ -429,13 +549,13 @@ def run_games(learner, hist, iters = 100, t_len = 100):
 if __name__ == '__main__':
 
     # Select agent.
-    agent = QLearner()
+    agent = DhruvQLearner()
 
     # Empty list to save history.
     hist = []
 
     # Run games.
-    run_games(agent, hist, 100, 1)
+    run_games(agent, hist, 200, 1)
 
     # Save history.
     np.save('hist',np.array(hist))
