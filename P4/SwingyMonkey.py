@@ -5,7 +5,7 @@ import numpy.random as npr
 
 class SwingyMonkey:
 
-    def __init__(self, sound=True, text=None, action_callback=None, 
+    def __init__(self, sound=True, text=None, action_callback=None,
                  reward_callback=None, tick_length=1000):
         """Constructor for the SwingyMonkey class.
 
@@ -30,10 +30,10 @@ class SwingyMonkey:
                      smaller for training."""
 
         # Don't change these!!!
-        self.screen_width  = 600
+        self.screen_width = 600
         self.screen_height = 400
-        self.horz_speed    = 25
-        self.impulse       = 15
+        self.horz_speed = 25
+        self.impulse = 15
         self.gravity       = npr.choice([1,4])
         self.tree_mean     = 5
         self.tree_gap      = 200
@@ -54,7 +54,7 @@ class SwingyMonkey:
         try:
             pg.mixer.init()
         except:
-            print("No sound.")
+            # print("No sound.")
             self.sound = False
 
         # Set up the screen for rendering.
@@ -74,7 +74,7 @@ class SwingyMonkey:
         # Track locations of trees and gaps.
         self.trees     = []
         self.next_tree = 0
-        
+
         # Precompute some things about the monkey.
         self.monkey_left  = self.screen_width/2 - self.monkey_img.get_width()/2
         self.monkey_right = self.monkey_left + self.monkey_img.get_width()
@@ -96,7 +96,7 @@ class SwingyMonkey:
                     'bot':  <screen height of bottom of tree trunk gap> },
           'monkey': { 'vel': <current monkey y-axis speed in pixels per iteration>,
                       'top': <screen height of top of monkey>,
-                      'bot': <screen height of bottom of monkey> }}'''                      
+                      'bot': <screen height of bottom of monkey> }}'''
 
         # Find the next closest tree.
         next_tree = None
@@ -178,7 +178,7 @@ class SwingyMonkey:
                 self.screen.blit(self.background_img, (tree['x'], tree['y']),
                                  (tree['x']-(self.iter+self.background_img.get_width()), tree['y'],
                                   self.tree_img.get_width(), self.tree_gap))
-                
+
             trunk_left  = tree['x']
             trunk_right = tree['x'] + self.tree_img.get_width()
             trunk_top   = tree['y']
@@ -191,7 +191,7 @@ class SwingyMonkey:
                 #pg.draw.rect(self.screen, (255,0,0), (self.monkey_left+15, monkey_top, self.monkey_img.get_width()-15, monkey_bot-monkey_top), 1)
                 if (monkey_top < trunk_top) or (monkey_bot > trunk_bot):
                     tree_hit = True
-            
+
             # Keep score.
             if not tree['s'] and (self.monkey_left+15) > trunk_right:
                 tree['s'] = True
@@ -228,7 +228,7 @@ class SwingyMonkey:
             if self.sound:
                 ch = self.screech_snd.play()
                 while ch.get_busy():
-                    pg.time.delay(500)
+                    pg.time.delay(2)
             if self.reward_fn is not None:
                 self.reward_fn(self.edge_penalty)
             if self.action_fn is not None:
@@ -238,7 +238,7 @@ class SwingyMonkey:
             if self.sound:
                 ch = self.screech_snd.play()
                 while ch.get_busy():
-                    pg.time.delay(500)
+                    pg.time.delay(2)
             if self.reward_fn is not None:
                 self.reward_fn(self.tree_penalty)
             if self.action_fn is not None:
@@ -249,11 +249,10 @@ class SwingyMonkey:
             if pass_tree:
                 self.reward_fn(self.tree_reward)
             else:
-                self.reward_fn(0.0)            
-        
+                self.reward_fn(0.0)
+
         # Wait just a bit.
-        pg.time.delay(self.tick_length)
-        print("HI")
+        # pg.time.delay(self.tick_length)
         # Move things.
         self.hook -= self.horz_speed
         self.iter -= self.horz_speed
@@ -263,7 +262,7 @@ class SwingyMonkey:
         return True
 
 if __name__ == '__main__':
-    
+
     # Create the game object.
     game = SwingyMonkey()
 
