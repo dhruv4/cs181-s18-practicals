@@ -1,5 +1,6 @@
 # Imports.
 import numpy as np
+from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import numpy.random as npr
 import pygame as pg
@@ -594,54 +595,41 @@ def run_games(learner, hist, iters=100, t_len=100):
 if __name__ == '__main__':
 
     ITERS = 500
-    plt.ylabel("Scores")
-    plt.xlabel("Epochs")
-    colors = ["r", "g", "b", "m", "y"]
+    TRIALS = 9
+    epsilon_to_test = [0.01, 0.03, 0.05, 0.07, 0.09]
+    discount_to_test = [0.5, 0.6, 0.7, 0.8, 0.9]
 
-    # plt.title("Testing Various Epsilon Values, discount=0.9")
-    # epsilon_to_test = [0.01, 0.03, 0.05, 0.07, 0.09]  # , 0.1]
+    def epsilon_test(epsilon):
+        for trial in range(TRIALS):
+            # Select agent.
+            agent = DhruvQLearner(epsilon=epsilon)
 
-    # for idx, epsilon in enumerate(epsilon_to_test):
-    #     # Select agent.
-    #     agent = DhruvQLearner(epsilon=epsilon)
+            # Empty list to save history.
+            hist = []
 
-    #     # Empty list to save history.
-    #     hist = []
+            # Run games.
+            run_games(agent, hist, ITERS, 1)
 
-    #     # Run games.
-    #     run_games(agent, hist, ITERS, 1)
+            # Save history.
+            print "epsilon", epsilon, hist
+            np.save(
+                'hist-epsilon-%f-%i' % (epsilon, trial + 10), np.array(hist))
 
-    #     # Save history.
-    #     print "epsilon", epsilon, hist
-    #     np.save('hist-epsilon-%f' % epsilon, np.array(hist))
-    #     plt.scatter(range(ITERS), hist, label="%f" % epsilon, marker=".", color=colors[idx])
+    def discount_test(discount):
+        for trial in TRIALS:
+            # Select agent.
+            agent = DhruvQLearner(discount=discount, epsilon=0.09)
 
-    # # appending pre-generated data from epsilon = 0.1
-    # hist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 2, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 2, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 2, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 2, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 1, 0, 2, 0, 1, 2, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 3, 0, 1, 0, 2, 0, 0, 0, 0, 2, 1, 1, 0, 3, 0, 1, 1, 1, 3, 1, 2, 0, 2, 0, 0, 2, 1, 0, 4, 1, 0, 2, 5, 0, 0, 0, 0, 0, 2, 0, 2, 1, 1, 1, 0, 0, 0, 4, 0, 1, 2, 1, 1, 0, 3, 0, 3, 0, 5, 3, 1, 5, 1, 0, 6, 5, 0, 4, 0, 1, 0, 0, 2, 0, 2, 4, 11, 2, 0, 1, 0, 11, 0, 0, 9, 7, 7, 1, 2, 0, 0, 1, 1, 7, 1, 1, 0, 11, 0, 23, 0, 5, 4, 1, 4, 0, 1, 0, 27, 1, 0, 1, 1, 1, 0, 0, 0, 3, 6, 15, 0, 4, 0, 14, 0, 10, 8, 0, 0, 1, 42, 0, 0, 0, 16, 0, 1, 10, 0, 10, 16, 0, 0, 1, 9, 1, 8, 0, 14, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 10, 8, 3, 8, 3, 0, 0, 1, 5, 8, 0, 0, 3, 21, 1, 0, 0, 11, 0, 0, 7, 1, 2, 0, 0, 0, 0, 53, 1, 3, 2, 0, 0, 3, 3, 1, 0, 12, 17, 1, 60, 4, 2, 0, 28, 3, 0, 0, 3, 2, 0, 0, 0, 1, 0, 117, 0, 4, 17, 1, 55, 1, 3, 0, 0, 0, 4, 0, 2, 21, 19, 0, 36, 74, 149, 105, 6, 137, 2, 0, 8, 10, 0, 40, 3, 0, 39, 5, 66, 4, 88, 1, 0, 45, 85, 3, 2, 0, 0, 5, 0, 18, 0, 0, 0, 2, 75, 31, 1, 60, 1, 1, 33, 0, 50, 0, 0, 3, 0, 1, 0, 0, 290, 43, 5, 28, 0, 0, 0, 2, 8, 6, 56, 0, 165, 0, 0, 0, 0, 7, 0, 4, 10, 129, 5, 1, 1, 0, 26, 0, 7, 0, 1, 0, 28, 1, 0, 1, 1, 14, 116, 0, 2, 0, 2, 0, 1, 0, 68, 0, 0, 81, 0, 0, 0, 1, 1, 1, 1, 0, 25, 1, 0, 90, 0, 0, 168, 0, 1, 70, 40, 5, 2, 2, 3, 0, 0, 0, 15, 0, 85, 0, 28, 0, 54, 1, 0, 0, 74, 106, 0, 0, 163, 1, 1, 127, 3, 3, 46, 214, 13, 15, 89, 2, 22, 54, 0, 2, 0, 7, 186, 31, 1, 60, 3, 5, 1, 72, 5, 101, 7, 1, 3, 0, 8, 5, 29, 4, 0, 32, 0, 5, 3, 2, 8, 3, 1, 1, 6, 0, 0, 20, 1, 0, 13, 82, 28, 15, 0, 2, 1, 47, 0, 1, 1, 132, 7, 1, 93, 0, 1, 25, 26, 147, 56, 42, 0, 2, 57, 7, 35, 0, 1, 4, 0, 2, 13, 7, 1, 154, 0, 5, 55, 0, 150, 0, 49, 2, 0, 0, 0, 1, 8, 1, 1, 6, 118, 82, 19, 0, 36, 0, 1, 3, 0, 37, 0, 23, 0, 52, 0, 0, 41, 10, 0, 28, 0, 1, 0, 8, 0, 0, 117, 17, 35, 0, 44, 7, 29, 3, 1, 0, 57, 3, 0, 219, 30, 0, 3, 0, 135, 0, 21, 24, 26, 103, 0, 4, 51, 38, 2, 56, 3, 42, 0, 48, 2, 0, 0, 1, 0, 8, 19, 72, 1, 2, 2, 36, 1, 66, 31, 0, 1, 42, 1, 4, 45, 0, 13, 44, 1, 28, 33, 0, 78, 2, 22, 24, 1, 41, 2, 0, 0, 82, 1, 1, 0, 94, 1, 0, 20, 68, 68, 1, 119, 1, 14, 2, 21, 10, 4, 0, 0, 8, 1, 1, 0, 2, 0, 37, 27, 18, 1, 66, 0, 2, 3, 56, 1, 1, 11, 0, 85, 0, 2, 1, 190, 2, 8, 31, 121, 1, 0, 3, 48, 81, 2, 2, 0, 0, 55, 102, 48, 5, 2, 0, 0, 57, 7, 0, 1, 12, 1, 31, 99, 3, 0, 413, 27, 38, 148, 4, 0, 128, 5, 11, 29, 2, 0, 27, 1, 0, 135, 50, 1, 2, 52, 106, 374, 3, 0, 7, 1, 0, 109, 0, 0, 0, 5, 0, 355, 0, 82, 7, 44, 67, 1, 160, 0, 3, 0, 15, 3, 0, 18, 73, 241, 270, 0, 0, 1, 28, 2, 0, 1, 0, 11, 46, 0, 103, 0, 213, 51, 1, 0, 0, 0, 17, 30, 0, 1, 1, 73, 36, 79, 149, 84, 23, 50, 0, 112, 70, 1, 4, 3, 167, 0, 0, 0, 0, 4, 0, 0, 27, 2, 0, 0, 172, 207, 0, 3, 50, 0, 1, 22, 1, 260, 38, 1, 0, 209, 0, 1, 1, 0, 68, 18, 14, 0, 0, 81, 0, 5, 161, 6, 0, 34, 1, 1, 0, 1, 4, 27, 184, 2, 24, 0, 6, 1, 94, 30, 86, 6, 0, 0, 0, 66, 3, 54, 0, 2, 99, 457, 54, 63, 0, 4, 0, 20, 41, 0, 1, 0, 0, 5, 19, 234, 76, 1, 165, 4, 28, 1, 24, 0, 74, 72, 5, 34, 1, 0, 18, 1, 0, 31, 0, 142, 196, 2, 1, 0, 0, 0, 71, 148, 1, 117, 1, 96, 0, 1, 189, 89, 194, 0, 0, 21, 33, 45, 1, 1, 0, 83, 77, 221, 65, 3, 15, 254, 206, 28, 19, 108]
-    # plt.scatter(range(ITERS), hist[:ITERS], label="0.1", marker=".", color=color[-1])
+            # Empty list to save history.
+            hist = []
 
-    # plt.legend(loc='upper left')
-    # plt.show()
-    # plt.savefig("epsilon-change.png")
+            # Run games.
+            run_games(agent, hist, ITERS, 1)
+            print "discount", discount, hist
 
-    plt.title("Testing Various Discount Values, epsilon=0.07")
-    discount_to_test = [0.5, 0.6, 0.7, 0.8, 0.9, 1]
+            np.save('hist-discount-%f-%i' % (discount, trial), np.array(hist))
 
-    for idx, discount in enumerate(discount_to_test):
-        # Select agent.
-        agent = DhruvQLearner(discount=discount, epsilon=0.7)
+    epsilon_test(float(raw_input("epsilon:")))
 
-        # Empty list to save history.
-        hist = []
-
-        # Run games.
-        run_games(agent, hist, ITERS, 1)
-        print "discount", discount, hist
-        # Save history.
-        np.save('hist-discount-%f' % discount, np.array(hist))
-        plt.scatter(range(ITERS), hist, label="%f" % discount,
-                    color=colors[idx])
-
-    plt.legend(loc='upper left')
-    plt.show()
-    plt.savefig("discount-change.png")
+    # for idx, discount in enumerate(discount_to_test):
+    #     pool.map(discount_test, discount)
