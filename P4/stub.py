@@ -594,42 +594,55 @@ def run_games(learner, hist, iters=100, t_len=100):
 
 if __name__ == '__main__':
 
-    ITERS = 500
-    TRIALS = 9
-    epsilon_to_test = [0.01, 0.03, 0.05, 0.07, 0.09]
-    discount_to_test = [0.5, 0.6, 0.7, 0.8, 0.9]
+    TEST = False
 
-    def epsilon_test(epsilon):
-        for trial in range(TRIALS):
-            # Select agent.
-            agent = DhruvQLearner(epsilon=epsilon)
+    if TEST:
+        ITERS = 500
+        TRIALS = 9
+        epsilon_to_test = [0.01, 0.03, 0.05, 0.07, 0.09]
+        discount_to_test = [0.5, 0.6, 0.7, 0.8, 0.9]
 
-            # Empty list to save history.
-            hist = []
+        def epsilon_test(epsilon):
+            for trial in range(TRIALS):
+                # Select agent.
+                agent = DhruvQLearner(epsilon=epsilon)
 
-            # Run games.
-            run_games(agent, hist, ITERS, 1)
+                # Empty list to save history.
+                hist = []
 
-            # Save history.
-            print "epsilon", epsilon, hist
-            np.save(
-                'hist-epsilon-%f-%i' % (epsilon, trial + 10), np.array(hist))
+                # Run games.
+                run_games(agent, hist, ITERS, 1)
 
-    def discount_test(discount):
-        for trial in TRIALS:
-            # Select agent.
-            agent = DhruvQLearner(discount=discount, epsilon=0.09)
+                # Save history.
+                print("epsilon - " + str(epsilon))
+                print(hist)
+                np.save(
+                    'hist-epsilon-%f-%i' % (epsilon, trial + 10), np.array(hist))
 
-            # Empty list to save history.
-            hist = []
+        def discount_test(discount):
+            for trial in TRIALS:
+                # Select agent.
+                agent = DhruvQLearner(discount=discount, epsilon=0.09)
 
-            # Run games.
-            run_games(agent, hist, ITERS, 1)
-            print "discount", discount, hist
+                # Empty list to save history.
+                hist = []
 
-            np.save('hist-discount-%f-%i' % (discount, trial), np.array(hist))
+                # Run games.
+                run_games(agent, hist, ITERS, 1)
+                print("discount - " + str(discount))
+                print(hist)
 
-    epsilon_test(float(raw_input("epsilon:")))
+                np.save('hist-discount-%f-%i' % (discount, trial), np.array(hist))
 
-    # for idx, discount in enumerate(discount_to_test):
-    #     pool.map(discount_test, discount)
+        epsilon_test(float(input("epsilon:")))
+
+        # for idx, discount in enumerate(discount_to_test):
+        #     pool.map(discount_test, discount)
+    else:
+        # Run normally with optimal parameters
+        agent = DhruvQLearner(epsilon=0.09, discount = 0.9)
+        hist = []
+        run_games(agent, hist, 500, 1)
+        print('Optimal')
+        print(hist)
+        np.save('hist-optimal', np.array(hist))
