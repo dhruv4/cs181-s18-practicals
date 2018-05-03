@@ -616,7 +616,7 @@ if __name__ == '__main__':
                 'hist-epsilon-%f-%i' % (epsilon, trial + 10), np.array(hist))
 
     def discount_test(discount):
-        for trial in TRIALS:
+        for trial in range(TRIALS):
             # Select agent.
             agent = DhruvQLearner(discount=discount, epsilon=0.09)
 
@@ -629,7 +629,6 @@ if __name__ == '__main__':
 
             np.save('hist-discount-%f-%i' % (discount, trial), np.array(hist))
 
-    epsilon_test(float(raw_input("epsilon:")))
+    # epsilon_test(float(raw_input("epsilon:")))
 
-    # for idx, discount in enumerate(discount_to_test):
-    #     pool.map(discount_test, discount)
+    discount_test(float(raw_input("discount:")))
