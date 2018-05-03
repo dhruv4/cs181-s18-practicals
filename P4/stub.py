@@ -640,7 +640,7 @@ if __name__ == '__main__':
         #     pool.map(discount_test, discount)
     else:
         # Run normally with optimal parameters
-        agent = DhruvQLearner(epsilon=0.09, discount = 0.9)
+        agent = DhruvQLearner(epsilon=0.09, discount = 0.7)
         hist = []
         run_games(agent, hist, 500, 1)
         print('Optimal')
